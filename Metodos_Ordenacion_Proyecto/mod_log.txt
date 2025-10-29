@@ -1,0 +1,79 @@
+[2025-10-28 20:37:07] Archivo /Users/hectorjesus/Downloads/MOCK_DATA.xlsx tiene 4000 registros; se truncará a 3500.
+[2025-10-28 20:37:09] Datos cargados: 3500 registros.
+[2025-10-28 20:37:09] Treeview actualizado con 3500 registros
+[2025-10-28 20:37:21] Treeview actualizado con 3500 registros
+[2025-10-28 20:37:21] Usuario solicitó visualizar datos originales.
+[2025-10-28 20:37:38] Ordenado por QuickSort en 20431000 ns
+[2025-10-28 20:37:48] Treeview actualizado con 76 registros
+[2025-10-28 20:37:52] Búsqueda en columna "ID Planta" por "78": 76 resultados
+[2025-10-28 20:38:16] Datos guardados en /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/prueba.xlsx
+[2025-10-28 20:38:51] Treeview actualizado con 3500 registros
+[2025-10-28 20:38:51] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 20:39:22] Ordenado por QuickSort en 85434208 ns
+[2025-10-28 20:39:26] Treeview actualizado con 3500 registros
+[2025-10-28 20:39:26] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 20:39:30] Treeview actualizado con 3500 registros
+[2025-10-28 20:39:30] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 20:39:33] Treeview actualizado con 3500 registros
+[2025-10-28 20:39:33] Usuario solicitó visualizar datos originales.
+[2025-10-28 20:39:44] Ordenado por QuickSort en 22123750 ns
+[2025-10-28 20:39:49] Treeview actualizado con 3500 registros
+[2025-10-28 20:39:49] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 20:40:10] Ordenado por QuickSort en 86157500 ns
+[2025-10-28 20:41:03] Ordenado por QuickSort en 18626500 ns
+[2025-10-28 20:41:10] Treeview actualizado con 3500 registros
+[2025-10-28 20:41:10] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 20:44:06] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx tiene 4000 registros; se truncará a 3500.
+[2025-10-28 20:44:08] Datos cargados: 3500 registros.
+[2025-10-28 20:44:08] Treeview actualizado con 3500 registros
+[2025-10-28 20:44:26] Treeview actualizado con 3500 registros
+[2025-10-28 20:44:26] Usuario solicitó visualizar datos originales.
+[2025-10-28 20:45:08] Ordenado por RadixSort en 5975208 ns
+[2025-10-28 20:45:12] Treeview actualizado con 3500 registros
+[2025-10-28 20:45:12] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 20:46:40] Error en ordenamiento: Radix Sort expects non-negative integers.
+Traceback (most recent call last):
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 597, in do_sort
+    sorted_values = ALGORITHMS[alg_key](data_list, profiler)
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 272, in radix_sort
+    raise ValueError('Radix Sort expects non-negative integers.')
+ValueError: Radix Sort expects non-negative integers.
+
+[2025-10-28 20:46:52] Ordenado por QuickSort en 88290667 ns
+[2025-10-28 20:46:55] Treeview actualizado con 3500 registros
+[2025-10-28 20:46:55] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 20:47:07] Datos guardados en /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/prueba2.xlsx
+[2025-10-28 20:54:14] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx tiene 4000 registros; se truncará a 3500.
+[2025-10-28 20:54:15] Datos cargados: 3500 registros.
+[2025-10-28 20:54:15] Treeview actualizado con 3500 registros
+[2025-10-28 20:54:38] Ordenado por QuickSort en 20622042 ns
+[2025-10-28 20:54:42] Treeview actualizado con 3500 registros
+[2025-10-28 20:54:42] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 20:54:53] Ordenado por QuickSort en 86035375 ns
+[2025-10-28 20:54:56] Treeview actualizado con 3500 registros
+[2025-10-28 20:54:56] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 20:57:31] Ordenado por QuickSort en 21285791 ns
+[2025-10-28 20:57:35] Treeview actualizado con 3500 registros
+[2025-10-28 20:57:35] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 20:57:46] Treeview actualizado con 3500 registros
+[2025-10-28 20:57:46] Usuario solicitó visualizar datos originales.
+[2025-10-28 20:58:10] Ordenado por QuickSort en 168340500 ns
+[2025-10-28 20:58:15] Treeview actualizado con 3500 registros
+[2025-10-28 20:58:15] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 20:58:33] Treeview actualizado con 3500 registros
+[2025-10-28 20:58:33] Usuario solicitó visualizar datos originales.
+[2025-10-28 20:58:43] Ordenado por QuickSort en 23795541 ns
+[2025-10-28 20:58:46] Treeview actualizado con 3500 registros
+[2025-10-28 20:58:46] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 20:59:42] Treeview actualizado con 2 registros
+[2025-10-28 20:59:44] Búsqueda en columna "ID Planta" por "3489": 2 resultados
+[2025-10-28 21:00:01] Datos guardados en /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/prueba1.xlsx
+[2025-10-28 21:00:56] Treeview actualizado con 3500 registros
+[2025-10-28 21:00:56] Usuario solicitó visualizar datos originales.
+[2025-10-28 21:01:11] Ordenado por QuickSort en 22356666 ns
+[2025-10-28 21:01:20] Treeview actualizado con 3500 registros
+[2025-10-28 21:01:20] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 21:01:48] Búsqueda en columna "ID Planta" por "1923.293": 0 resultados
+[2025-10-28 21:02:28] Ordenado por QuickSort en 21239042 ns
+[2025-10-28 21:02:32] Treeview actualizado con 3500 registros
+[2025-10-28 21:02:32] Usuario solicitó visualizar datos ordenados.
