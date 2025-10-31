@@ -13,7 +13,7 @@ Versión final para presentación — interfaz con tkinter que:
 - Registro de acciones y modificaciones en `mod_log.txt`.
 - Cabecera con datos de identificación del equipo (Equipo 14 - Energía - Héctor Jesús Valadez Pardo y Alberto Roman Campos).
 
-Dependencias:
+Dependencias (Librerias):
  pip install pandas openpyxl matplotlib
 
 Uso:
@@ -39,27 +39,29 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 # --------------------------- Configuración ---------------------------------
 EXCEL_OUTPUT = 'sorted_results_by_method.xlsx'
 LOG_FILE = 'mod_log.txt'
-MAX_RECORDS = 3500
+MAX_RECORDS = 100000
 TEAM_INFO = {
-    'Equipo': 'Equipo 14 - Energía',
-    'Integrantes': ['Héctor Jesús Valadez Pardo y Alberto Roman Campos'],
-    'Materia': 'Métodos de Ordenación y Búsqueda'
+    'equipo': 'Equipo 14 - Energía',
+    'integrantes': ['Héctor Jesús Valadez Pardo y Alberto Roman Campos'],
+    'tema': 'Métodos de Ordenación y Búsqueda'
 }
 
 # --------------------------- Utilidades -----------------------------------
 
-def log(msg: str):
-    """Registra mensajes en el archivo de log con fecha y hora."""
+def registrar_log(mensaje: str):
+    """
+    Registra mensajes en el archivo de registro con fecha y hora.
+    """
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     with open(LOG_FILE, 'a', encoding='utf-8') as f:
-        f.write(f'[{now}] {msg}\n')
+        f.write(f'[{now}] {mensaje}\n')
 
 
 # --------------------------- Instrumentación -------------------------------
 class Profiler:
     def __init__(self):
         self.ops = 0
-        self.history = []  # list of (ops, elapsed_seconds)
+        self.history = []  # lista de (ops, segundos_transcurridos)
         self.start = None
 
     def start_timing(self):
@@ -84,8 +86,9 @@ class Profiler:
 
 
 # --------------------------- Algoritmos -----------------------------------
-# Each algorithm takes (arr, profiler) and returns a sorted list (not in-place unless documented)
+# Cada algoritmo toma (arr, profiler) y devuelve una lista ordenada.
 
+ # Método Burbuja: compara elementos adyacentes e intercambia si están en orden incorrecto.
 def bubble_sort(arr, profiler: Profiler):
     a = arr.copy()
     n = len(a)
@@ -104,6 +107,7 @@ def bubble_sort(arr, profiler: Profiler):
     return a
 
 
+ # Método de Selección: busca el mínimo y lo coloca en su posición correspondiente.
 def selection_sort(arr, profiler: Profiler):
     a = arr.copy()
     n = len(a)
@@ -121,6 +125,7 @@ def selection_sort(arr, profiler: Profiler):
     return a
 
 
+ # Método de Inserción: inserta cada elemento en la posición correcta del subarreglo ordenado.
 def insertion_sort(arr, profiler: Profiler):
     a = arr.copy()
     profiler.start_timing()
@@ -141,6 +146,7 @@ def insertion_sort(arr, profiler: Profiler):
     return a
 
 
+ # Método Shell: mejora la inserción usando saltos (gaps) decrecientes.
 def shell_sort(arr, profiler: Profiler):
     a = arr.copy()
     n = len(a)
@@ -165,6 +171,7 @@ def shell_sort(arr, profiler: Profiler):
     return a
 
 
+ # Método de Mezcla (MergeSort): divide el arreglo y combina las partes ordenadas.
 def merge_sort(arr, profiler: Profiler):
     a = arr.copy()
     profiler.start_timing()
@@ -196,6 +203,7 @@ def merge_sort(arr, profiler: Profiler):
     return res
 
 
+ # Método Rápido (QuickSort): divide el arreglo usando un pivote y ordena recursivamente.
 def quick_sort(arr, profiler: Profiler):
     a = arr.copy()
     profiler.start_timing()
@@ -226,6 +234,7 @@ def quick_sort(arr, profiler: Profiler):
     return a
 
 
+ # Método de Montículo (HeapSort): utiliza un heap para extraer el menor elemento sucesivamente.
 def heap_sort(arr, profiler: Profiler):
     a = arr.copy()
     profiler.start_timing()
@@ -239,54 +248,97 @@ def heap_sort(arr, profiler: Profiler):
     return res
 
 
+ # Método de Conteo (modificado): puede ordenar enteros, flotantes, texto o fechas.
 def counting_sort(arr, profiler: Profiler):
     a = list(arr)
     profiler.start_timing()
-    if not all(isinstance(x, int) for x in a):
-        raise ValueError('Counting Sort requires integer values.')
+
     if not a:
         profiler.finish()
         return []
-    mn = min(a)
-    mx = max(a)
+
+    try:
+        numeric_a = pd.to_numeric(a, errors='coerce')
+        if numeric_a.isna().all():
+            uniques = sorted(set(map(str, a)))
+            mapping = {val: i for i, val in enumerate(uniques)}
+            numeric_a = [mapping[str(v)] for v in a]
+        else:
+            numeric_a = numeric_a.fillna(0).astype(int).tolist()
+    except Exception:
+        uniques = sorted(set(map(str, a)))
+        mapping = {val: i for i, val in enumerate(uniques)}
+        numeric_a = [mapping[str(v)] for v in a]
+
+    mn = min(numeric_a)
+    mx = max(numeric_a)
     rng = mx - mn + 1
     if rng > 10_000_000:
-        raise ValueError('Range too large for Counting Sort.')
+        profiler.finish()
+        return sorted(a)
+
     count = [0] * rng
-    for v in a:
+    for v in numeric_a:
         count[v - mn] += 1
         profiler.op()
-    res = []
+
+    sorted_a = []
     for i, c in enumerate(count):
         if c:
-            res.extend([i + mn] * c)
+            sorted_a.extend([i + mn] * c)
             profiler.op(c)
+
+    if 'mapping' in locals():
+        reverse_map = {v: k for k, v in mapping.items()}
+        sorted_a = [reverse_map.get(int(v), str(v)) for v in sorted_a]
+
     profiler.finish()
-    return res
+    return sorted_a
 
 
+ # Método Radix (modificado): puede ordenar enteros, flotantes, texto o fechas.
 def radix_sort(arr, profiler: Profiler):
     a = list(arr)
     profiler.start_timing()
-    if not all(isinstance(x, int) and x >= 0 for x in a):
-        raise ValueError('Radix Sort expects non-negative integers.')
+
     if not a:
         profiler.finish()
         return []
-    maxv = max(a)
+
+    try:
+        numeric_a = pd.to_numeric(a, errors='coerce')
+        if numeric_a.isna().all():
+            uniques = sorted(set(map(str, a)))
+            mapping = {val: i for i, val in enumerate(uniques)}
+            numeric_a = [mapping[str(v)] for v in a]
+        else:
+            numeric_a = numeric_a.fillna(0).astype(int).tolist()
+    except Exception:
+        uniques = sorted(set(map(str, a)))
+        mapping = {val: i for i, val in enumerate(uniques)}
+        numeric_a = [mapping[str(v)] for v in a]
+
+    maxv = max(numeric_a)
     exp = 1
     while maxv // exp > 0:
         buckets = [[] for _ in range(10)]
-        for num in a:
-            buckets[(num // exp) % 10].append(num)
+        for num in numeric_a:
+            idx = (num // exp) % 10
+            buckets[idx].append(num)
             profiler.op()
-        a = [num for bucket in buckets for num in bucket]
+        numeric_a = [num for bucket in buckets for num in bucket]
         exp *= 10
         profiler.op()
+
+    if 'mapping' in locals():
+        reverse_map = {v: k for k, v in mapping.items()}
+        numeric_a = [reverse_map.get(int(v), str(v)) for v in numeric_a]
+
     profiler.finish()
-    return a
+    return numeric_a
 
 
+ # Método de Cubetas: distribuye los elementos en cubetas y ordena cada cubeta.
 def bucket_sort(arr, profiler: Profiler):
     a = list(arr)
     profiler.start_timing()
@@ -316,6 +368,7 @@ def bucket_sort(arr, profiler: Profiler):
     return res
 
 
+ # Inserción Binaria: busca la posición usando búsqueda binaria antes de insertar.
 def binary_insertion_sort(arr, profiler: Profiler):
     a = arr.copy()
     profiler.start_timing()
@@ -341,17 +394,17 @@ def binary_insertion_sort(arr, profiler: Profiler):
 
 
 ALGORITHMS = {
-    'Burbuja': bubble_sort,
-    'Seleccion': selection_sort,
-    'Insercion': insertion_sort,
-    'ShellSort': shell_sort,
-    'MergeSort': merge_sort,
-    'QuickSort': quick_sort,
-    'HeapSort': heap_sort,
-    'CountingSort': counting_sort,
-    'RadixSort': radix_sort,
-    'BucketSort': bucket_sort,
-    'InsercionBinaria': binary_insertion_sort,
+    '\nBubble Sort\n': bubble_sort,
+    '\nSelection Sort\n': selection_sort,
+    '\nInsertion Sort\n': insertion_sort,
+    '\nShell Sort\n': shell_sort,
+    '\nMerge Sort\n': merge_sort,
+    '\nQuick Sort\n': quick_sort,
+    '\nHeap Sort\n': heap_sort,
+    '\nCounting Sort\n': counting_sort,
+    '\nRadix Sort\n': radix_sort,
+    '\nBucket Sort\n': bucket_sort,
+    '\nInserción Binaria\n': binary_insertion_sort,
 }
 
 # --------------------------- Carga de datos --------------------------------
@@ -373,13 +426,13 @@ def cargar_datos(path=None):
             df = pd.read_csv(path, sep=None, engine='python')
         # limitar a MAX_RECORDS
         if len(df) > MAX_RECORDS:
-            log(f'Archivo {path} tiene {len(df)} registros; se truncará a {MAX_RECORDS}.')
+            registrar_log(f'Archivo {path} tiene {len(df)} registros; se truncará a {MAX_RECORDS}.')
             df = df.iloc[:MAX_RECORDS].copy()
         else:
-            log(f'Archivo {path} cargado con {len(df)} registros.')
+            registrar_log(f'Archivo {path} cargado con {len(df)} registros.')
         return df
     except Exception as e:
-        log('Error al cargar datos: ' + str(e))
+        registrar_log('Error al cargar datos: ' + str(e))
         messagebox.showerror('Error', f'No se pudo cargar el archivo: {e}')
         return None
 
@@ -448,7 +501,7 @@ class SortingApp:
         self.df_sorted = None
         self.current_column = None
         messagebox.showinfo('Datos cargados', f'Datos cargados correctamente ({len(self.df_original)} registros).')
-        log(f'Datos cargados: {len(self.df_original)} registros.')
+        registrar_log(f'Datos cargados: {len(self.df_original)} registros.')
         self._refresh_tree(self.df_original)
 
     def action_mostrar(self):
@@ -459,10 +512,10 @@ class SortingApp:
         choice = messagebox.askquestion('Mostrar', '¿Desea ver los datos ordenados? (Si = ordenados, No = originales)')
         if choice == 'yes' and self.df_sorted is not None:
             self._refresh_tree(self.df_sorted)
-            log('Usuario solicitó visualizar datos ordenados.')
+            registrar_log('Usuario solicitó visualizar datos ordenados.')
         else:
             self._refresh_tree(self.df_original)
-            log('Usuario solicitó visualizar datos originales.')
+            registrar_log('Usuario solicitó visualizar datos originales.')
 
     def action_buscar(self):
         if self.df_original is None:
@@ -501,11 +554,11 @@ class SortingApp:
                 else:
                     self._refresh_tree(res)
                     messagebox.showinfo('Resultado', f'Se encontraron {len(res)} coincidencias. (Se muestran en la tabla)')
-                log(f'Búsqueda en columna "{col}" por "{val}": {len(res)} resultados')
+                registrar_log(f'Búsqueda en columna "{col}" por "{val}": {len(res)} resultados')
                 win.destroy()
             except Exception as e:
                 messagebox.showerror('Error', f'Error durante la búsqueda: {e}')
-                log('Error en búsqueda: ' + str(e))
+                registrar_log('Error en búsqueda: ' + str(e))
 
         ttk.Button(win, text='Buscar', command=do_search).pack(pady=6)
         ttk.Button(win, text='Cancelar', command=win.destroy).pack(pady=2)
@@ -521,10 +574,10 @@ class SortingApp:
                 return
             target.to_excel(path, index=False)
             messagebox.showinfo('Guardado', f'Archivo guardado en: {path}')
-            log(f'Datos guardados en {path}')
+            registrar_log(f'Datos guardados en {path}')
         except Exception as e:
             messagebox.showerror('Error', f'No se pudo guardar el archivo: {e}')
-            log('Error guardando archivo: ' + str(e))
+            registrar_log('Error guardando archivo: ' + str(e))
 
     def action_ordenar(self):
         if self.df_original is None:
@@ -597,7 +650,7 @@ class SortingApp:
                 sorted_values = ALGORITHMS[alg_key](data_list, profiler)
             except Exception as e:
                 messagebox.showerror('Error', f'No se pudo ordenar con {alg_key}: {e}')
-                log('Error en ordenamiento: ' + str(e) + '\n' + traceback.format_exc())
+                registrar_log('Error en ordenamiento: ' + str(e) + '\n' + traceback.format_exc())
                 return
             end_ns = time.perf_counter_ns()
             elapsed_ns = end_ns - start_ns
@@ -608,22 +661,22 @@ class SortingApp:
                 # para manejar filas completas, usar pandas merge approach
                 temp_df = self.df_original.copy()
                 temp_df['_sort_key_'] = series.astype(str) if isinstance(sorted_values[0], str) else pd.to_numeric(series, errors='coerce')
-                # create a DataFrame with sorted keys
+                # Crea un DataFrame con claves ordenadas
                 sorted_df = pd.DataFrame({'_sort_key_': sorted_values})
-                # preserve duplicates by adding helper index
+                # Conservar duplicados añadiendo un índice auxiliar
                 temp_df['_pos_'] = range(len(temp_df))
                 sorted_df['_pos_'] = sorted_df.index
-                # Perform a stable join: we'll map positions by sorting temp_df by _sort_key_ then taking top N
+                # Realizaremos una unión estable: mapearemos las posiciones ordenando temp_df por _sort_key_ y luego tomando los N elementos superiores.
                 try:
-                    # first sort original using the selected algorithm on the key values to get indices
-                    # Fallback: use pandas sort_values when conversion to numeric succeeded
+                    # Primero, ordena el original utilizando el algoritmo seleccionado en los valores clave para obtener los índices.
+                    # Alternativa: usar pandas sort_values cuando la conversión a numérico sea exitosa.
                     if pd.api.types.is_numeric_dtype(temp_df['_sort_key_']):
                         idx_sorted = temp_df['_sort_key_'].argsort(kind='mergesort')
                     else:
                         idx_sorted = temp_df['_sort_key_'].astype(str).argsort(kind='mergesort')
                     df_result = temp_df.iloc[idx_sorted].drop(columns=['_sort_key_', '_pos_']).reset_index(drop=True)
                 except Exception:
-                    # fallback: construct result by matching elements sequentially (handles duplicates imperfectly)
+                    # alternativa: construir el resultado haciendo coincidir los elementos secuencialmente (maneja los duplicados de forma imperfecta).
                     res_rows = []
                     used = [False] * len(temp_df)
                     keys = temp_df[col].astype(str).tolist()
@@ -642,7 +695,7 @@ class SortingApp:
                 self.df_original = self.df_sorted.copy()
             except Exception as e:
                 # si falla la recomposición de filas, guardar al menos la columna ordenada
-                log('Error reconstruyendo df_sorted: ' + str(e) + '\n' + traceback.format_exc())
+                registrar_log('Error reconstruyendo df_sorted: ' + str(e) + '\n' + traceback.format_exc())
                 self.df_sorted = pd.DataFrame({col: sorted_values})
                 # Actualizar df_original con la versión ordenada (aunque sea solo la columna)
                 self.df_original = self.df_sorted.copy()
@@ -657,7 +710,7 @@ class SortingApp:
             # mostrar leyenda (sin mostrar datos)
             self.legend_var.set(f'Ordenado por el método {alg_key} y se realizó en {elapsed_ns} nanosegundos')
             messagebox.showinfo('Ordenamiento completado', self.legend_var.get())
-            log(f'Ordenado por {alg_key} en {elapsed_ns} ns')
+            registrar_log(f'Ordenado por {alg_key} en {elapsed_ns} ns')
             win.destroy()
 
         ttk.Button(win, text='Ordenar', command=do_sort).pack(pady=6)
@@ -680,10 +733,10 @@ class SortingApp:
                     break
                 vals = [str(row[c]) for c in df.columns]
                 self.tree.insert('', 'end', values=vals)
-            log(f'Treeview actualizado con {min(len(df), MAX_RECORDS)} registros')
+            registrar_log(f'Treeview actualizado con {min(len(df), MAX_RECORDS)} registros')
         except Exception as e:
             messagebox.showerror('Error', f'No se pudo mostrar la tabla: {e}')
-            log('Error en _refresh_tree: ' + str(e) + '\n' + traceback.format_exc())
+            registrar_log('Error en _refresh_tree: ' + str(e) + '\n' + traceback.format_exc())
 
 
 # --------------------------- Main -----------------------------------------
@@ -695,7 +748,7 @@ def main():
         root.geometry('1000x600')
         root.mainloop()
     except Exception as e:
-        log('Error fatal en la aplicación: ' + str(e) + '\n' + traceback.format_exc())
+        registrar_log('Error fatal en la aplicación: ' + str(e) + '\n' + traceback.format_exc())
         messagebox.showerror('Error fatal', f'La aplicación terminó por un error: {e}')
 
 
