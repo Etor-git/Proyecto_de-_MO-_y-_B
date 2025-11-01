@@ -88,9 +88,37 @@ class Profiler:
 # --------------------------- Algoritmos -----------------------------------
 # Cada algoritmo toma (arr, profiler) y devuelve una lista ordenada.
 
- # Método Burbuja: compara elementos adyacentes e intercambia si están en orden incorrecto.
+# Función auxiliar para normalizar los datos
+def normalizar_datos(arr):
+    """
+    Convierte los datos a un formato comparable: enteros, flotantes o texto.
+    Evita errores al mezclar tipos de datos (fechas, texto, números, etc.)
+    """
+    """
+    Convierte los datos a un formato comparable (números, fechas o texto).
+    Evita errores al mezclar tipos de datos y garantiza un orden lógico.
+    """
+    serie = pd.Series(arr)
+
+    #Intentar convertir a numérico (enteros o flotantes)
+    num = pd.to_numeric(serie, errors='coerce')
+    if not num.isna().all():
+        return num.fillna(method='ffill').astype(float).tolist()
+
+    #Intentar convertir a fechas (detecta formatos comunes YYYY/MM/DD, DD-MM-YYYY, etc.)
+    fechas = pd.to_datetime(serie, errors='coerce', dayfirst=False, infer_datetime_format=True)
+    if not fechas.isna().all():
+        # Convertir fechas a timestamp para que puedan compararse
+        return fechas.map(lambda x: x.timestamp() if not pd.isna(x) else 0).tolist()
+
+    #Si no son números ni fechas, tratarlos como texto
+    return serie.astype(str).str.lower().tolist()
+
+
+# Método Burbuja
 def bubble_sort(arr, profiler: Profiler):
-    a = arr.copy()
+    datos = normalizar_datos(arr)
+    a = datos.copy()
     n = len(a)
     profiler.start_timing()
     for i in range(n):
@@ -107,9 +135,10 @@ def bubble_sort(arr, profiler: Profiler):
     return a
 
 
- # Método de Selección: busca el mínimo y lo coloca en su posición correspondiente.
+# Método de Selección
 def selection_sort(arr, profiler: Profiler):
-    a = arr.copy()
+    datos = normalizar_datos(arr)
+    a = datos.copy()
     n = len(a)
     profiler.start_timing()
     for i in range(n):
@@ -125,30 +154,28 @@ def selection_sort(arr, profiler: Profiler):
     return a
 
 
- # Método de Inserción: inserta cada elemento en la posición correcta del subarreglo ordenado.
+# Método de Inserción
 def insertion_sort(arr, profiler: Profiler):
-    a = arr.copy()
+    datos = normalizar_datos(arr)
+    a = datos.copy()
     profiler.start_timing()
     for i in range(1, len(a)):
         key = a[i]
         j = i - 1
-        while j >= 0:
-            profiler.op()
-            if a[j] > key:
-                a[j + 1] = a[j]
-                profiler.op(2)
-                j -= 1
-            else:
-                break
+        while j >= 0 and a[j] > key:
+            a[j + 1] = a[j]
+            j -= 1
+            profiler.op(2)
         a[j + 1] = key
         profiler.op()
     profiler.finish()
     return a
 
 
- # Método Shell: mejora la inserción usando saltos (gaps) decrecientes.
+# Método Shell
 def shell_sort(arr, profiler: Profiler):
-    a = arr.copy()
+    datos = normalizar_datos(arr)
+    a = datos.copy()
     n = len(a)
     gap = n // 2
     profiler.start_timing()
@@ -156,14 +183,10 @@ def shell_sort(arr, profiler: Profiler):
         for i in range(gap, n):
             temp = a[i]
             j = i
-            while j >= gap:
-                profiler.op()
-                if a[j - gap] > temp:
-                    a[j] = a[j - gap]
-                    profiler.op(2)
-                    j -= gap
-                else:
-                    break
+            while j >= gap and a[j - gap] > temp:
+                a[j] = a[j - gap]
+                j -= gap
+                profiler.op(2)
             a[j] = temp
             profiler.op()
         gap //= 2
@@ -171,9 +194,10 @@ def shell_sort(arr, profiler: Profiler):
     return a
 
 
- # Método de Mezcla (MergeSort): divide el arreglo y combina las partes ordenadas.
+# Método de Mezcla (MergeSort)
 def merge_sort(arr, profiler: Profiler):
-    a = arr.copy()
+    datos = normalizar_datos(arr)
+    a = datos.copy()
     profiler.start_timing()
 
     def merge(l):
@@ -192,10 +216,8 @@ def merge_sort(arr, profiler: Profiler):
             else:
                 merged.append(right[j])
                 j += 1
-            profiler.op()
         merged.extend(left[i:])
         merged.extend(right[j:])
-        profiler.op(len(left) - i + len(right) - j)
         return merged
 
     res = merge(a)
@@ -203,60 +225,61 @@ def merge_sort(arr, profiler: Profiler):
     return res
 
 
- # Método Rápido (QuickSort): divide el arreglo usando un pivote y ordena recursivamente.
+# Método Rápido (QuickSort)
 def quick_sort(arr, profiler: Profiler):
-    a = arr.copy()
+    datos = normalizar_datos(arr)
+    a = datos.copy()
     profiler.start_timing()
 
-    def quick(l, low, high):
+    # QuickSort iterativo: evita desbordamiento de recursión
+    stack = [(0, len(a) - 1)]
+    while stack:
+        low, high = stack.pop()
         if low < high:
-            p = partition(l, low, high)
-            quick(l, low, p - 1)
-            quick(l, p + 1, high)
+            pivot_index = random.randint(low, high)
+            a[pivot_index], a[high] = a[high], a[pivot_index]
+            pivot = a[high]
+            i = low
+            for j in range(low, high):
+                profiler.op()
+                if a[j] < pivot:
+                    a[i], a[j] = a[j], a[i]
+                    i += 1
+            a[i], a[high] = a[high], a[i]
 
-    def partition(l, low, high):
-        pivot_index = random.randint(low, high)
-        l[pivot_index], l[high] = l[high], l[pivot_index]
-        pivot = l[high]
-        i = low
-        for j in range(low, high):
-            profiler.op()
-            if l[j] < pivot:
-                l[i], l[j] = l[j], l[i]
-                profiler.op(3)
-                i += 1
-        l[i], l[high] = l[high], l[i]
-        profiler.op(3)
-        return i
+            # Apilar los subrangos (primero el más pequeño para menor profundidad)
+            if i - 1 - low < high - (i + 1):
+                stack.append((i + 1, high))
+                stack.append((low, i - 1))
+            else:
+                stack.append((low, i - 1))
+                stack.append((i + 1, high))
 
-    quick(a, 0, len(a) - 1)
     profiler.finish()
     return a
 
 
- # Método de Montículo (HeapSort): utiliza un heap para extraer el menor elemento sucesivamente.
+# Método de Montículo (HeapSort)
 def heap_sort(arr, profiler: Profiler):
-    a = arr.copy()
+    datos = normalizar_datos(arr)
+    a = datos.copy()
     profiler.start_timing()
     heap = []
     for x in a:
         heapq.heappush(heap, x)
         profiler.op()
     res = [heapq.heappop(heap) for _ in range(len(heap))]
-    profiler.op(len(a))
     profiler.finish()
     return res
 
 
- # Método de Conteo (modificado): puede ordenar enteros, flotantes, texto o fechas.
+# Método de Conteo (ya compatible)
 def counting_sort(arr, profiler: Profiler):
     a = list(arr)
     profiler.start_timing()
-
     if not a:
         profiler.finish()
         return []
-
     try:
         numeric_a = pd.to_numeric(a, errors='coerce')
         if numeric_a.isna().all():
@@ -269,42 +292,34 @@ def counting_sort(arr, profiler: Profiler):
         uniques = sorted(set(map(str, a)))
         mapping = {val: i for i, val in enumerate(uniques)}
         numeric_a = [mapping[str(v)] for v in a]
-
     mn = min(numeric_a)
     mx = max(numeric_a)
     rng = mx - mn + 1
     if rng > 10_000_000:
         profiler.finish()
         return sorted(a)
-
     count = [0] * rng
     for v in numeric_a:
         count[v - mn] += 1
         profiler.op()
-
     sorted_a = []
     for i, c in enumerate(count):
         if c:
             sorted_a.extend([i + mn] * c)
-            profiler.op(c)
-
     if 'mapping' in locals():
         reverse_map = {v: k for k, v in mapping.items()}
         sorted_a = [reverse_map.get(int(v), str(v)) for v in sorted_a]
-
     profiler.finish()
     return sorted_a
 
 
- # Método Radix (modificado): puede ordenar enteros, flotantes, texto o fechas.
+# Método Radix (ya compatible)
 def radix_sort(arr, profiler: Profiler):
     a = list(arr)
     profiler.start_timing()
-
     if not a:
         profiler.finish()
         return []
-
     try:
         numeric_a = pd.to_numeric(a, errors='coerce')
         if numeric_a.isna().all():
@@ -317,7 +332,6 @@ def radix_sort(arr, profiler: Profiler):
         uniques = sorted(set(map(str, a)))
         mapping = {val: i for i, val in enumerate(uniques)}
         numeric_a = [mapping[str(v)] for v in a]
-
     maxv = max(numeric_a)
     exp = 1
     while maxv // exp > 0:
@@ -328,19 +342,17 @@ def radix_sort(arr, profiler: Profiler):
             profiler.op()
         numeric_a = [num for bucket in buckets for num in bucket]
         exp *= 10
-        profiler.op()
-
     if 'mapping' in locals():
         reverse_map = {v: k for k, v in mapping.items()}
         numeric_a = [reverse_map.get(int(v), str(v)) for v in numeric_a]
-
     profiler.finish()
     return numeric_a
 
 
- # Método de Cubetas: distribuye los elementos en cubetas y ordena cada cubeta.
+# Método de Cubetas (Bucket Sort)
 def bucket_sort(arr, profiler: Profiler):
-    a = list(arr)
+    datos = normalizar_datos(arr)
+    a = datos.copy()
     profiler.start_timing()
     if not a:
         profiler.finish()
@@ -357,20 +369,16 @@ def bucket_sort(arr, profiler: Profiler):
         profiler.op()
     res = []
     for b in buckets:
-        for x in b:
-            res.append(x)
-            j = len(res) - 2
-            while j >= 0 and res[j] > res[j + 1]:
-                res[j], res[j + 1] = res[j + 1], res[j]
-                profiler.op(2)
-                j -= 1
+        b.sort()
+        res.extend(b)
     profiler.finish()
     return res
 
 
- # Inserción Binaria: busca la posición usando búsqueda binaria antes de insertar.
+# Método de Inserción Binaria
 def binary_insertion_sort(arr, profiler: Profiler):
-    a = arr.copy()
+    datos = normalizar_datos(arr)
+    a = datos.copy()
     profiler.start_timing()
     for i in range(1, len(a)):
         key = a[i]
@@ -620,13 +628,13 @@ class SortingApp:
             if method_choice == 'Avanzado':
                 alg_key = adv_var.get()
             elif method_choice == 'QuickSort (Rápido)':
-                alg_key = 'QuickSort'
+                alg_key = '\nQuick Sort\n'
             elif method_choice == 'MergeSort (Mezcla)':
-                alg_key = 'MergeSort'
+                alg_key = '\nMerge Sort\n'
             elif method_choice == 'Aleatorio':
                 alg_key = random.choice(list(ALGORITHMS.keys()))
             else:
-                alg_key = 'QuickSort'
+                alg_key = '\nQuick Sort\n'
 
             if not col:
                 messagebox.showwarning('Atención', 'Selecciona una columna.')
@@ -647,11 +655,30 @@ class SortingApp:
             profiler = Profiler()
             start_ns = time.perf_counter_ns()
             try:
+                # Ejecutar el algoritmo seleccionado y manejar posibles errores de recursión o tipo
                 sorted_values = ALGORITHMS[alg_key](data_list, profiler)
+            except RecursionError:
+                messagebox.showerror(
+                    'Error',
+                    f'El método {alg_key} excedió la profundidad de recursión. Se usará MergeSort como respaldo.'
+                )
+                registrar_log(f'Fallo recursión en {alg_key}, se usó MergeSort en su lugar.')
+                sorted_values = ALGORITHMS['\nMerge Sort\n'](data_list, profiler)
             except Exception as e:
-                messagebox.showerror('Error', f'No se pudo ordenar con {alg_key}: {e}')
+                messagebox.showerror(
+                    'Error',
+                    f'No se pudo ordenar con {alg_key}: {e}\nSe usará MergeSort como respaldo.'
+                )
                 registrar_log('Error en ordenamiento: ' + str(e) + '\n' + traceback.format_exc())
-                return
+                try:
+                    sorted_values = ALGORITHMS['\nMerge Sort\n'](data_list, profiler)
+                except Exception as e2:
+                    messagebox.showerror(
+                        'Error crítico',
+                        f'Falló también el método de respaldo MergeSort: {e2}'
+                    )
+                    registrar_log('Error crítico en respaldo MergeSort: ' + str(e2))
+                    return
             end_ns = time.perf_counter_ns()
             elapsed_ns = end_ns - start_ns
 
