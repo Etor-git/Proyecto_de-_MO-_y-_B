@@ -1,0 +1,472 @@
+[2025-10-28 21:32:09] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx tiene 4000 registros; se truncará a 3500.
+[2025-10-28 21:32:11] Datos cargados: 3500 registros.
+[2025-10-28 21:32:11] Treeview actualizado con 3500 registros
+[2025-10-28 21:32:32] Ordenado por Burbuja en 405567875 ns
+[2025-10-28 21:32:35] Treeview actualizado con 3500 registros
+[2025-10-28 21:32:35] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 21:46:42] Treeview actualizado con 3500 registros
+[2025-10-28 21:46:42] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 21:47:14] Error en ordenamiento: unsupported operand type(s) for -: 'str' and 'str'
+Traceback (most recent call last):
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 597, in do_sort
+    sorted_values = ALGORITHMS[alg_key](data_list, profiler)
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 303, in bucket_sort
+    idx = int((x - mn) / (mx - mn) * (n - 1))
+               ~~^~~~
+TypeError: unsupported operand type(s) for -: 'str' and 'str'
+
+[2025-10-28 21:47:20] Ordenado por MergeSort en 23554125 ns
+[2025-10-28 21:47:26] Treeview actualizado con 3500 registros
+[2025-10-28 21:47:26] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 21:48:14] Ordenado por InsercionBinaria en 330171375 ns
+[2025-10-28 21:48:17] Treeview actualizado con 3500 registros
+[2025-10-28 21:48:17] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 21:49:00] Ordenado por Seleccion en 524777375 ns
+[2025-10-28 21:49:07] Treeview actualizado con 3500 registros
+[2025-10-28 21:49:07] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 21:49:12] Treeview actualizado con 3500 registros
+[2025-10-28 21:49:12] Usuario solicitó visualizar datos originales.
+[2025-10-28 21:49:29] Ordenado por InsercionBinaria en 326407000 ns
+[2025-10-28 21:49:33] Treeview actualizado con 3500 registros
+[2025-10-28 21:49:33] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 21:50:07] Ordenado por QuickSort en 43498250 ns
+[2025-10-28 21:50:12] Treeview actualizado con 3500 registros
+[2025-10-28 21:50:12] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 21:50:48] Ordenado por MergeSort en 20930333 ns
+[2025-10-28 21:50:51] Treeview actualizado con 3500 registros
+[2025-10-28 21:50:51] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 21:51:31] Ordenado por Seleccion en 528037958 ns
+[2025-10-28 21:51:39] Treeview actualizado con 3500 registros
+[2025-10-28 21:51:39] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 21:54:41] Treeview actualizado con 3500 registros
+[2025-10-28 21:54:41] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 21:54:56] Ordenado por Burbuja en 790093458 ns
+[2025-10-28 21:54:59] Treeview actualizado con 3500 registros
+[2025-10-28 21:54:59] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 21:58:32] Error en ordenamiento: Counting Sort requires integer values.
+Traceback (most recent call last):
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 597, in do_sort
+    sorted_values = ALGORITHMS[alg_key](data_list, profiler)
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 246, in counting_sort
+    raise ValueError('Counting Sort requires integer values.')
+ValueError: Counting Sort requires integer values.
+
+[2025-10-28 21:58:44] Ordenado por BucketSort en 6150916 ns
+[2025-10-28 21:58:47] Treeview actualizado con 3500 registros
+[2025-10-28 21:58:47] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 22:03:59] Treeview actualizado con 3500 registros
+[2025-10-28 22:03:59] Usuario solicitó visualizar datos ordenados.
+[2025-10-28 22:04:10] Ordenado por ShellSort en 31293875 ns
+[2025-10-28 22:04:13] Treeview actualizado con 3500 registros
+[2025-10-28 22:04:13] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 07:46:15] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx tiene 4000 registros; se truncará a 3500.
+[2025-10-29 07:46:16] Datos cargados: 3500 registros.
+[2025-10-29 07:46:16] Treeview actualizado con 3500 registros
+[2025-10-29 07:46:38] Ordenado por MergeSort en 23052125 ns
+[2025-10-29 07:46:41] Treeview actualizado con 3500 registros
+[2025-10-29 07:46:41] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 07:47:20] Treeview actualizado con 3500 registros
+[2025-10-29 07:47:20] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 07:47:35] Ordenado por Insercion en 524405416 ns
+[2025-10-29 07:47:38] Treeview actualizado con 3500 registros
+[2025-10-29 07:47:38] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 09:08:49] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx tiene 4000 registros; se truncará a 3500.
+[2025-10-29 09:08:51] Datos cargados: 3500 registros.
+[2025-10-29 09:08:51] Treeview actualizado con 3500 registros
+[2025-10-29 09:09:10] Ordenado por Montículo en 2827625 ns
+[2025-10-29 09:12:04] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx tiene 4000 registros; se truncará a 3500.
+[2025-10-29 09:12:06] Datos cargados: 3500 registros.
+[2025-10-29 09:12:06] Treeview actualizado con 3500 registros
+[2025-10-29 09:12:20] Ordenado por Inserción Binaria en 115828625 ns
+[2025-10-29 09:12:25] Treeview actualizado con 3500 registros
+[2025-10-29 09:12:25] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 09:16:48] Treeview actualizado con 15 registros
+[2025-10-29 09:16:52] Búsqueda en columna "ID Planta" por "233": 15 resultados
+[2025-10-29 09:17:05] Treeview actualizado con 188 registros
+[2025-10-29 09:17:06] Búsqueda en columna "ID Planta" por "23": 188 resultados
+[2025-10-29 09:18:21] Ordenado por Quick en 41616834 ns
+[2025-10-29 09:18:26] Treeview actualizado con 3500 registros
+[2025-10-29 09:18:26] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 09:21:01] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx tiene 4000 registros; se truncará a 3500.
+[2025-10-29 09:21:02] Datos cargados: 3500 registros.
+[2025-10-29 09:21:02] Treeview actualizado con 3500 registros
+[2025-10-29 09:21:10] Treeview actualizado con 3500 registros
+[2025-10-29 09:21:10] Usuario solicitó visualizar datos originales.
+[2025-10-29 09:21:52] Ordenado por 
+Bubble Sort en 807947541 ns
+[2025-10-29 09:23:28] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx tiene 4000 registros; se truncará a 3500.
+[2025-10-29 09:23:30] Datos cargados: 3500 registros.
+[2025-10-29 09:23:30] Treeview actualizado con 3500 registros
+[2025-10-29 09:23:34] Treeview actualizado con 3500 registros
+[2025-10-29 09:23:34] Usuario solicitó visualizar datos originales.
+[2025-10-29 09:23:57] Ordenado por 
+Bubble Sort
+ en 931207375 ns
+[2025-10-29 09:24:14] Ordenado por 
+Bucket Sort
+ en 4795208 ns
+[2025-10-29 09:24:27] Datos guardados en /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/prueba.xlsx
+[2025-10-29 10:49:11] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx tiene 4000 registros; se truncará a 3500.
+[2025-10-29 10:49:13] Datos cargados: 3500 registros.
+[2025-10-29 10:49:14] Treeview actualizado con 3500 registros
+[2025-10-29 10:49:22] Ordenado por 
+Merge Sort
+ en 25559500 ns
+[2025-10-29 10:49:24] Treeview actualizado con 3500 registros
+[2025-10-29 10:49:24] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 11:20:27] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx tiene 4000 registros; se truncará a 3500.
+[2025-10-29 11:20:30] Datos cargados: 3500 registros.
+[2025-10-29 11:20:30] Treeview actualizado con 3500 registros
+[2025-10-29 11:20:36] Treeview actualizado con 3500 registros
+[2025-10-29 11:20:36] Usuario solicitó visualizar datos originales.
+[2025-10-29 11:21:00] Error en ordenamiento: 'QuickSort'
+Traceback (most recent call last):
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 610, in do_sort
+    sorted_values = ALGORITHMS[alg_key](data_list, profiler)
+                    ~~~~~~~~~~^^^^^^^^^
+KeyError: 'QuickSort'
+
+[2025-10-29 11:21:07] Error en ordenamiento: 'MergeSort'
+Traceback (most recent call last):
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 610, in do_sort
+    sorted_values = ALGORITHMS[alg_key](data_list, profiler)
+                    ~~~~~~~~~~^^^^^^^^^
+KeyError: 'MergeSort'
+
+[2025-10-29 11:21:18] Ordenado por 
+Bubble Sort
+ en 396521917 ns
+[2025-10-29 11:21:25] Treeview actualizado con 3500 registros
+[2025-10-29 11:21:25] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 14:06:33] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx tiene 4000 registros; se truncará a 3500.
+[2025-10-29 14:06:34] Datos cargados: 3500 registros.
+[2025-10-29 14:06:34] Treeview actualizado con 3500 registros
+[2025-10-29 14:06:43] Error en ordenamiento: 'QuickSort'
+Traceback (most recent call last):
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 610, in do_sort
+    sorted_values = ALGORITHMS[alg_key](data_list, profiler)
+                    ~~~~~~~~~~^^^^^^^^^
+KeyError: 'QuickSort'
+
+[2025-10-29 14:06:58] Ordenado por 
+Counting Sort
+ en 2410792 ns
+[2025-10-29 14:07:01] Treeview actualizado con 3500 registros
+[2025-10-29 14:07:01] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 14:14:19] Ordenado por 
+Insertion Sort
+ en 521022166 ns
+[2025-10-29 14:14:22] Treeview actualizado con 3500 registros
+[2025-10-29 14:14:22] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 14:20:06] Treeview actualizado con 3500 registros
+[2025-10-29 14:20:06] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 14:20:48] Treeview actualizado con 3500 registros
+[2025-10-29 14:20:48] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 14:21:00] Treeview actualizado con 3500 registros
+[2025-10-29 14:21:00] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 14:21:05] Treeview actualizado con 3500 registros
+[2025-10-29 14:21:05] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 14:21:15] Treeview actualizado con 188 registros
+[2025-10-29 14:21:16] Búsqueda en columna "ID Planta" por "23": 188 resultados
+[2025-10-29 14:22:11] Treeview actualizado con 131 registros
+[2025-10-29 14:22:13] Búsqueda en columna "Ubicación" por "Quintana Roo": 131 resultados
+[2025-10-29 14:22:32] Treeview actualizado con 1618 registros
+[2025-10-29 14:22:34] Búsqueda en columna "ID Planta" por "1": 1618 resultados
+[2025-10-29 14:22:43] Búsqueda en columna "ID Planta" por "2424": 0 resultados
+[2025-10-29 14:22:50] Treeview actualizado con 6 registros
+[2025-10-29 14:22:52] Búsqueda en columna "ID Planta" por "471": 6 resultados
+[2025-10-29 14:25:07] Datos guardados en /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/ytyt.xlsx
+[2025-10-29 21:59:22] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx cargado con 10000 registros.
+[2025-10-29 21:59:23] Datos cargados: 10000 registros.
+[2025-10-29 21:59:23] Treeview actualizado con 10000 registros
+[2025-10-29 21:59:44] Ordenado por 
+Selection Sort
+ en 4102596875 ns
+[2025-10-29 21:59:47] Treeview actualizado con 10000 registros
+[2025-10-29 21:59:47] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 22:00:58] Treeview actualizado con 10000 registros
+[2025-10-29 22:00:58] Usuario solicitó visualizar datos originales.
+[2025-10-29 22:01:01] Treeview actualizado con 10000 registros
+[2025-10-29 22:01:01] Usuario solicitó visualizar datos originales.
+[2025-10-29 22:01:06] Treeview actualizado con 10000 registros
+[2025-10-29 22:01:06] Usuario solicitó visualizar datos originales.
+[2025-10-29 22:01:18] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx cargado con 10000 registros.
+[2025-10-29 22:01:21] Datos cargados: 10000 registros.
+[2025-10-29 22:01:21] Treeview actualizado con 10000 registros
+[2025-10-29 22:01:24] Treeview actualizado con 10000 registros
+[2025-10-29 22:01:24] Usuario solicitó visualizar datos originales.
+[2025-10-29 22:01:44] Ordenado por 
+Bubble Sort
+ en 7429957916 ns
+[2025-10-29 22:01:48] Treeview actualizado con 10000 registros
+[2025-10-29 22:01:48] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 22:02:02] Treeview actualizado con 1 registros
+[2025-10-29 22:02:03] Búsqueda en columna "ID_Planta" por "10000": 1 resultados
+[2025-10-29 22:03:49] Datos guardados en /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/bubble.xlsx
+[2025-10-29 22:09:46] Treeview actualizado con 10000 registros
+[2025-10-29 22:09:46] Usuario solicitó visualizar datos originales.
+[2025-10-29 22:09:50] Treeview actualizado con 10000 registros
+[2025-10-29 22:09:50] Usuario solicitó visualizar datos originales.
+[2025-10-29 22:10:08] Ordenado por 
+Shell Sort
+ en 76523541 ns
+[2025-10-29 22:10:11] Treeview actualizado con 10000 registros
+[2025-10-29 22:10:11] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 22:19:50] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx cargado con 10000 registros.
+[2025-10-29 22:19:52] Datos cargados: 10000 registros.
+[2025-10-29 22:19:52] Treeview actualizado con 10000 registros
+[2025-10-29 22:20:14] Ordenado por 
+Counting Sort
+ en 15205042 ns
+[2025-10-29 22:20:21] Treeview actualizado con 10000 registros
+[2025-10-29 22:20:21] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 22:20:37] Treeview actualizado con 10000 registros
+[2025-10-29 22:20:37] Usuario solicitó visualizar datos originales.
+[2025-10-29 22:20:50] Ordenado por 
+Radix Sort
+ en 14689500 ns
+[2025-10-29 22:20:55] Treeview actualizado con 10000 registros
+[2025-10-29 22:20:55] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 22:25:45] Treeview actualizado con 10000 registros
+[2025-10-29 22:25:45] Usuario solicitó visualizar datos originales.
+[2025-10-29 22:26:05] Error en ordenamiento: 'QuickSort'
+Traceback (most recent call last):
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 650, in do_sort
+    sorted_values = ALGORITHMS[alg_key](data_list, profiler)
+                    ~~~~~~~~~~^^^^^^^^^
+KeyError: 'QuickSort'
+
+[2025-10-29 22:27:54] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx cargado con 10000 registros.
+[2025-10-29 22:27:56] Datos cargados: 10000 registros.
+[2025-10-29 22:27:56] Treeview actualizado con 10000 registros
+[2025-10-29 22:28:14] Ordenado por 
+Bubble Sort
+ en 7450439375 ns
+[2025-10-29 22:28:18] Treeview actualizado con 10000 registros
+[2025-10-29 22:28:18] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 22:28:37] Ordenado por 
+Bubble Sort
+ en 6836634750 ns
+[2025-10-29 22:29:01] Ordenado por 
+Bubble Sort
+ en 7338616125 ns
+[2025-10-29 22:29:27] Ordenado por 
+Bubble Sort
+ en 7291829375 ns
+[2025-10-29 22:29:44] Ordenado por 
+Bubble Sort
+ en 7305368000 ns
+[2025-10-29 22:30:02] Ordenado por 
+Bubble Sort
+ en 7261773708 ns
+[2025-10-29 22:30:23] Ordenado por 
+Bubble Sort
+ en 7247510791 ns
+[2025-10-29 22:30:47] Treeview actualizado con 10000 registros
+[2025-10-29 22:30:47] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 22:31:15] Ordenado por 
+Bubble Sort
+ en 7312409833 ns
+[2025-10-29 22:31:43] Ordenado por 
+Bubble Sort
+ en 7019235167 ns
+[2025-10-29 22:32:08] Ordenado por 
+Bubble Sort
+ en 6203309917 ns
+[2025-10-29 22:32:13] Treeview actualizado con 10000 registros
+[2025-10-29 22:32:13] Usuario solicitó visualizar datos originales.
+[2025-10-29 22:32:28] Ordenado por 
+Bubble Sort
+ en 4547712666 ns
+[2025-10-29 22:32:33] Treeview actualizado con 10000 registros
+[2025-10-29 22:32:33] Usuario solicitó visualizar datos ordenados.
+[2025-10-29 22:33:00] Treeview actualizado con 10000 registros
+[2025-10-29 22:33:00] Usuario solicitó visualizar datos originales.
+[2025-10-29 22:33:16] Ordenado por 
+Selection Sort
+ en 4016281250 ns
+[2025-10-29 22:33:46] Ordenado por 
+Selection Sort
+ en 4211908250 ns
+[2025-10-29 22:34:10] Ordenado por 
+Selection Sort
+ en 4053141291 ns
+[2025-10-29 22:37:37] Ordenado por 
+Selection Sort
+ en 4026065709 ns
+[2025-10-30 10:29:43] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx cargado con 10000 registros.
+[2025-10-30 10:29:45] Datos cargados: 10000 registros.
+[2025-10-30 10:29:45] Treeview actualizado con 10000 registros
+[2025-10-30 10:29:49] Treeview actualizado con 10000 registros
+[2025-10-30 10:29:49] Usuario solicitó visualizar datos originales.
+[2025-10-30 10:29:54] Error en ordenamiento: 'QuickSort'
+Traceback (most recent call last):
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 650, in do_sort
+    sorted_values = ALGORITHMS[alg_key](data_list, profiler)
+                    ~~~~~~~~~~^^^^^^^^^
+KeyError: 'QuickSort'
+
+[2025-10-30 10:30:00] Error en ordenamiento: 'QuickSort'
+Traceback (most recent call last):
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 650, in do_sort
+    sorted_values = ALGORITHMS[alg_key](data_list, profiler)
+                    ~~~~~~~~~~^^^^^^^^^
+KeyError: 'QuickSort'
+
+[2025-10-30 10:30:30] Ordenado por 
+Bubble Sort
+ en 7234789125 ns
+[2025-10-30 10:30:34] Treeview actualizado con 10000 registros
+[2025-10-30 10:30:34] Usuario solicitó visualizar datos ordenados.
+[2025-10-31 21:15:23] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx cargado con 10000 registros.
+[2025-10-31 21:15:24] Datos cargados: 10000 registros.
+[2025-10-31 21:15:24] Treeview actualizado con 10000 registros
+[2025-10-31 21:15:38] Ordenado por 
+Selection Sort
+ en 4117700708 ns
+[2025-10-31 21:16:02] Ordenado por 
+Selection Sort
+ en 4168449792 ns
+[2025-10-31 21:26:23] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx cargado con 10000 registros.
+[2025-10-31 21:26:24] Datos cargados: 10000 registros.
+[2025-10-31 21:26:25] Treeview actualizado con 10000 registros
+[2025-10-31 21:26:39] Error en ordenamiento: 'QuickSort'
+Traceback (most recent call last):
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 644, in do_sort
+    sorted_values = ALGORITHMS[alg_key](data_list, profiler)
+                    ~~~~~~~~~~^^^^^^^^^
+KeyError: 'QuickSort'
+
+[2025-10-31 21:31:20] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx cargado con 10000 registros.
+[2025-10-31 21:31:21] Datos cargados: 10000 registros.
+[2025-10-31 21:31:21] Treeview actualizado con 10000 registros
+[2025-10-31 21:31:28] Ordenado por 
+Quick Sort
+ en 43824458 ns
+[2025-10-31 21:31:37] Treeview actualizado con 10000 registros
+[2025-10-31 21:31:37] Usuario solicitó visualizar datos ordenados.
+[2025-10-31 21:31:50] Ordenado por 
+Quick Sort
+ en 42177584 ns
+[2025-10-31 21:31:55] Treeview actualizado con 10000 registros
+[2025-10-31 21:31:55] Usuario solicitó visualizar datos ordenados.
+[2025-10-31 21:38:25] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx cargado con 10000 registros.
+[2025-10-31 21:38:27] Datos cargados: 10000 registros.
+[2025-10-31 21:38:27] Treeview actualizado con 10000 registros
+[2025-10-31 21:38:32] Ordenado por 
+Quick Sort
+ en 45051958 ns
+[2025-10-31 21:38:36] Treeview actualizado con 10000 registros
+[2025-10-31 21:38:36] Usuario solicitó visualizar datos ordenados.
+[2025-10-31 21:38:47] Treeview actualizado con 10000 registros
+[2025-10-31 21:38:47] Usuario solicitó visualizar datos originales.
+[2025-10-31 21:38:57] Error en ordenamiento: maximum recursion depth exceeded
+Traceback (most recent call last):
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 654, in do_sort
+    sorted_values = ALGORITHMS[alg_key](data_list, profiler)
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 253, in quick_sort
+    quick(a, 0, len(a) - 1)
+    ~~~~~^^^^^^^^^^^^^^^^^^
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 237, in quick
+    quick(l, low, p - 1)
+    ~~~~~^^^^^^^^^^^^^^^
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 237, in quick
+    quick(l, low, p - 1)
+    ~~~~~^^^^^^^^^^^^^^^
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 237, in quick
+    quick(l, low, p - 1)
+    ~~~~~^^^^^^^^^^^^^^^
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 238, in quick
+    quick(l, p + 1, high)
+    ~~~~~^^^^^^^^^^^^^^^^
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 238, in quick
+    quick(l, p + 1, high)
+    ~~~~~^^^^^^^^^^^^^^^^
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 238, in quick
+    quick(l, p + 1, high)
+    ~~~~~^^^^^^^^^^^^^^^^
+  [Previous line repeated 984 more times]
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 236, in quick
+    p = partition(l, low, high)
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 241, in partition
+    pivot_index = random.randint(low, high)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/random.py", line 340, in randint
+    return self.randrange(a, b+1)
+           ~~~~~~~~~~~~~~^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/random.py", line 322, in randrange
+    return istart + self._randbelow(width)
+                    ~~~~~~~~~~~~~~~^^^^^^^
+RecursionError: maximum recursion depth exceeded
+
+[2025-10-31 21:39:01] Treeview actualizado con 10000 registros
+[2025-10-31 21:39:01] Usuario solicitó visualizar datos ordenados.
+[2025-10-31 21:39:11] Error en ordenamiento: maximum recursion depth exceeded
+Traceback (most recent call last):
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 654, in do_sort
+    sorted_values = ALGORITHMS[alg_key](data_list, profiler)
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 253, in quick_sort
+    quick(a, 0, len(a) - 1)
+    ~~~~~^^^^^^^^^^^^^^^^^^
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 238, in quick
+    quick(l, p + 1, high)
+    ~~~~~^^^^^^^^^^^^^^^^
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 237, in quick
+    quick(l, low, p - 1)
+    ~~~~~^^^^^^^^^^^^^^^
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 237, in quick
+    quick(l, low, p - 1)
+    ~~~~~^^^^^^^^^^^^^^^
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 237, in quick
+    quick(l, low, p - 1)
+    ~~~~~^^^^^^^^^^^^^^^
+  [Previous line repeated 2 more times]
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 238, in quick
+    quick(l, p + 1, high)
+    ~~~~~^^^^^^^^^^^^^^^^
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 238, in quick
+    quick(l, p + 1, high)
+    ~~~~~^^^^^^^^^^^^^^^^
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 238, in quick
+    quick(l, p + 1, high)
+    ~~~~~^^^^^^^^^^^^^^^^
+  [Previous line repeated 981 more times]
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 236, in quick
+    p = partition(l, low, high)
+  File "/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/sorting_gui.py", line 241, in partition
+    pivot_index = random.randint(low, high)
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/random.py", line 340, in randint
+    return self.randrange(a, b+1)
+           ~~~~~~~~~~~~~~^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/random.py", line 322, in randrange
+    return istart + self._randbelow(width)
+                    ~~~~~~~~~~~~~~~^^^^^^^
+RecursionError: maximum recursion depth exceeded
+
+[2025-10-31 21:48:47] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx cargado con 10000 registros.
+[2025-10-31 21:48:49] Datos cargados: 10000 registros.
+[2025-10-31 21:48:49] Treeview actualizado con 10000 registros
+[2025-10-31 21:48:53] Treeview actualizado con 10000 registros
+[2025-10-31 21:48:53] Usuario solicitó visualizar datos originales.
+[2025-10-31 21:49:02] Fallo recursión en 
+Quick Sort
+, se usó MergeSort en su lugar.
+[2025-10-31 21:49:04] Ordenado por 
+Quick Sort
+ en 4039138375 ns
+[2025-10-31 21:49:56] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx cargado con 10000 registros.
+[2025-10-31 21:49:57] Datos cargados: 10000 registros.
+[2025-10-31 21:49:57] Treeview actualizado con 10000 registros
+[2025-10-31 21:50:04] Ordenado por 
+Quick Sort
+ en 472472792 ns
+[2025-10-31 21:50:07] Treeview actualizado con 10000 registros
+[2025-10-31 21:50:07] Usuario solicitó visualizar datos ordenados.
+[2025-10-31 21:50:19] Ordenado por 
+Merge Sort
+ en 46801375 ns
+[2025-10-31 21:50:29] Ordenado por 
+Heap Sort
+ en 23461375 ns
+[2025-11-03 08:14:56] Archivo /Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx cargado con 10000 registros.
+[2025-11-03 08:14:58] Datos cargados: 10000 registros.
+[2025-11-03 08:14:58] Treeview actualizado con 10000 registros
