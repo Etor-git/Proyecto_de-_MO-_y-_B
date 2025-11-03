@@ -91,27 +91,22 @@ class Profiler:
 # Función auxiliar para normalizar los datos
 def normalizar_datos(arr):
     """
-    Convierte los datos a un formato comparable: enteros, flotantes o texto.
-    Evita errores al mezclar tipos de datos (fechas, texto, números, etc.)
-    """
-    """
     Convierte los datos a un formato comparable (números, fechas o texto).
-    Evita errores al mezclar tipos de datos y garantiza un orden lógico.
+    Detecta automáticamente el tipo de dato dominante en la columna.
     """
     serie = pd.Series(arr)
 
-    #Intentar convertir a numérico (enteros o flotantes)
+    # Intentar conversión numérica (enteros o flotantes)
     num = pd.to_numeric(serie, errors='coerce')
-    if not num.isna().all():
+    if num.notna().sum() > len(serie) * 0.6:  # mayoría numérica
         return num.fillna(method='ffill').astype(float).tolist()
 
-    #Intentar convertir a fechas (detecta formatos comunes YYYY/MM/DD, DD-MM-YYYY, etc.)
-    fechas = pd.to_datetime(serie, errors='coerce', dayfirst=False, infer_datetime_format=True)
-    if not fechas.isna().all():
-        # Convertir fechas a timestamp para que puedan compararse
+    # Intentar conversión a fechas (YYYY/MM/DD, DD-MM-YYYY, etc.)
+    fechas = pd.to_datetime(serie, errors='coerce', infer_datetime_format=True)
+    if fechas.notna().sum() > len(serie) * 0.6:  # mayoría son fechas
         return fechas.map(lambda x: x.timestamp() if not pd.isna(x) else 0).tolist()
 
-    #Si no son números ni fechas, tratarlos como texto
+    # Si no son numéricos ni fechas, tratarlos como texto
     return serie.astype(str).str.lower().tolist()
 
 
@@ -275,78 +270,59 @@ def heap_sort(arr, profiler: Profiler):
 
 # Método de Conteo (ya compatible)
 def counting_sort(arr, profiler: Profiler):
-    a = list(arr)
+    datos = normalizar_datos(arr)
+    a = datos.copy()
     profiler.start_timing()
-    if not a:
+
+    # Validar tipo
+    if not all(isinstance(x, (int, float)) for x in a):
+        # Si no son números, usar ordenamiento estable por Python
         profiler.finish()
-        return []
-    try:
-        numeric_a = pd.to_numeric(a, errors='coerce')
-        if numeric_a.isna().all():
-            uniques = sorted(set(map(str, a)))
-            mapping = {val: i for i, val in enumerate(uniques)}
-            numeric_a = [mapping[str(v)] for v in a]
-        else:
-            numeric_a = numeric_a.fillna(0).astype(int).tolist()
-    except Exception:
-        uniques = sorted(set(map(str, a)))
-        mapping = {val: i for i, val in enumerate(uniques)}
-        numeric_a = [mapping[str(v)] for v in a]
-    mn = min(numeric_a)
-    mx = max(numeric_a)
-    rng = mx - mn + 1
-    if rng > 10_000_000:
+        return sorted(a, key=str)
+
+    # Limitar rango
+    mn, mx = int(min(a)), int(max(a))
+    if mx - mn > 10_000_000:
         profiler.finish()
         return sorted(a)
-    count = [0] * rng
-    for v in numeric_a:
-        count[v - mn] += 1
+
+    count = [0] * (mx - mn + 1)
+    for v in a:
+        count[int(v) - mn] += 1
         profiler.op()
-    sorted_a = []
+
+    res = []
     for i, c in enumerate(count):
         if c:
-            sorted_a.extend([i + mn] * c)
-    if 'mapping' in locals():
-        reverse_map = {v: k for k, v in mapping.items()}
-        sorted_a = [reverse_map.get(int(v), str(v)) for v in sorted_a]
+            res.extend([i + mn] * c)
     profiler.finish()
-    return sorted_a
+    return res
 
 
 # Método Radix (ya compatible)
 def radix_sort(arr, profiler: Profiler):
-    a = list(arr)
+    datos = normalizar_datos(arr)
+    a = datos.copy()
     profiler.start_timing()
-    if not a:
+
+    # Si no son todos enteros o flotantes, usar ordenamiento por texto
+    if not all(isinstance(x, (int, float)) for x in a):
         profiler.finish()
-        return []
-    try:
-        numeric_a = pd.to_numeric(a, errors='coerce')
-        if numeric_a.isna().all():
-            uniques = sorted(set(map(str, a)))
-            mapping = {val: i for i, val in enumerate(uniques)}
-            numeric_a = [mapping[str(v)] for v in a]
-        else:
-            numeric_a = numeric_a.fillna(0).astype(int).tolist()
-    except Exception:
-        uniques = sorted(set(map(str, a)))
-        mapping = {val: i for i, val in enumerate(uniques)}
-        numeric_a = [mapping[str(v)] for v in a]
-    maxv = max(numeric_a)
+        return sorted(a, key=str)
+
+    a = [int(x) for x in a]
+    maxv = max(a)
     exp = 1
     while maxv // exp > 0:
         buckets = [[] for _ in range(10)]
-        for num in numeric_a:
+        for num in a:
             idx = (num // exp) % 10
             buckets[idx].append(num)
             profiler.op()
-        numeric_a = [num for bucket in buckets for num in bucket]
+        a = [num for bucket in buckets for num in bucket]
         exp *= 10
-    if 'mapping' in locals():
-        reverse_map = {v: k for k, v in mapping.items()}
-        numeric_a = [reverse_map.get(int(v), str(v)) for v in numeric_a]
     profiler.finish()
-    return numeric_a
+    return a
 
 
 # Método de Cubetas (Bucket Sort)
@@ -354,26 +330,35 @@ def bucket_sort(arr, profiler: Profiler):
     datos = normalizar_datos(arr)
     a = datos.copy()
     profiler.start_timing()
-    if not a:
+
+    # Si los datos no son numéricos, ordenar como texto
+    if not all(isinstance(x, (int, float)) for x in a):
+        profiler.finish()
+        return sorted(a, key=str)
+
+    n = len(a)
+    if n == 0:
         profiler.finish()
         return []
+
     mn, mx = min(a), max(a)
     if mn == mx:
         profiler.finish()
         return a.copy()
-    n = len(a)
+
+    # Crear cubetas proporcionales al rango
     buckets = [[] for _ in range(n)]
     for x in a:
-        idx = int((x - mn) / (mx - mn) * (n - 1))
+        idx = int((x - mn) / (mx - mn + 1e-9) * (n - 1))
         buckets[idx].append(x)
         profiler.op()
+
     res = []
     for b in buckets:
         b.sort()
         res.extend(b)
     profiler.finish()
     return res
-
 
 # Método de Inserción Binaria
 def binary_insertion_sort(arr, profiler: Profiler):
@@ -643,7 +628,7 @@ class SortingApp:
             # intentar convertir columna a numérica para ordenamiento estable si es posible
             series = self.df_original[col]
             try:
-                serie_num = pd.to_numeric(series, errors='coerce')
+                serie_num = pd.to_numeric(series, errors='coerce', downcast='float')
                 if serie_num.isna().all():
                     # no numéricos
                     data_list = series.astype(str).tolist()
