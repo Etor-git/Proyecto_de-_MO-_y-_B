@@ -1,4 +1,5 @@
 """
+Equipo 14 - Energía - Héctor Jesús Valadez Pardo y Alberto Roman Campos
 sorting_gui.py
 
 Versión final para presentación — interfaz con tkinter que:
@@ -21,7 +22,6 @@ Uso:
 
 Notas:
  - El programa evita errores con try/except y validaciones.
- - Está escrito y etiquetado en español sin faltas de ortografía.
 """
 
 import time
@@ -360,28 +360,35 @@ def bucket_sort(arr, profiler: Profiler):
     profiler.finish()
     return res
 
-# Método de Inserción Binaria
-def binary_insertion_sort(arr, profiler: Profiler):
+
+# Método de Burbuja Bidireccional (Cocktail Sort)
+def cocktail_sort(arr, profiler: Profiler):
     datos = normalizar_datos(arr)
     a = datos.copy()
+    n = len(a)
+    swapped = True
+    start = 0
+    end = n - 1
     profiler.start_timing()
-    for i in range(1, len(a)):
-        key = a[i]
-        lo, hi = 0, i
-        while lo < hi:
-            mid = (lo + hi) // 2
+    while swapped:
+        swapped = False
+        for i in range(start, end):
             profiler.op()
-            if a[mid] <= key:
-                lo = mid + 1
-            else:
-                hi = mid
-        j = i
-        while j > lo:
-            a[j] = a[j - 1]
-            profiler.op(2)
-            j -= 1
-        a[lo] = key
-        profiler.op()
+            if a[i] > a[i + 1]:
+                a[i], a[i + 1] = a[i + 1], a[i]
+                swapped = True
+                profiler.op(3)
+        if not swapped:
+            break
+        swapped = False
+        end -= 1
+        for i in range(end - 1, start - 1, -1):
+            profiler.op()
+            if a[i] > a[i + 1]:
+                a[i], a[i + 1] = a[i + 1], a[i]
+                swapped = True
+                profiler.op(3)
+        start += 1
     profiler.finish()
     return a
 
@@ -397,7 +404,7 @@ ALGORITHMS = {
     '\nCounting Sort\n': counting_sort,
     '\nRadix Sort\n': radix_sort,
     '\nBucket Sort\n': bucket_sort,
-    '\nInserción Binaria\n': binary_insertion_sort,
+    '\nCocktail Sort\n': cocktail_sort,
 }
 
 # --------------------------- Carga de datos --------------------------------
