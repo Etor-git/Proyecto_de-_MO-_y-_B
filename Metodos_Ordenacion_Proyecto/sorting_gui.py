@@ -1,5 +1,4 @@
 """
-Equipo 14 - Energía - Héctor Jesús Valadez Pardo y Alberto Roman Campos
 sorting_gui.py
 
 Versión final para presentación — interfaz con tkinter que:
@@ -22,6 +21,7 @@ Uso:
 
 Notas:
  - El programa evita errores con try/except y validaciones.
+ - Está escrito y etiquetado en español sin faltas de ortografía.
 """
 
 import time
@@ -110,7 +110,7 @@ def normalizar_datos(arr):
     return serie.astype(str).str.lower().tolist()
 
 
-# Método Burbuja
+#Bubble sort
 def bubble_sort(arr, profiler: Profiler):
     datos = normalizar_datos(arr)
     a = datos.copy()
@@ -130,7 +130,7 @@ def bubble_sort(arr, profiler: Profiler):
     return a
 
 
-# Método de Selección
+#Selection sort
 def selection_sort(arr, profiler: Profiler):
     datos = normalizar_datos(arr)
     a = datos.copy()
@@ -149,7 +149,7 @@ def selection_sort(arr, profiler: Profiler):
     return a
 
 
-# Método de Inserción
+#Insertion sort
 def insertion_sort(arr, profiler: Profiler):
     datos = normalizar_datos(arr)
     a = datos.copy()
@@ -167,7 +167,7 @@ def insertion_sort(arr, profiler: Profiler):
     return a
 
 
-# Método Shell
+#Shell sort
 def shell_sort(arr, profiler: Profiler):
     datos = normalizar_datos(arr)
     a = datos.copy()
@@ -189,7 +189,7 @@ def shell_sort(arr, profiler: Profiler):
     return a
 
 
-# Método de Mezcla (MergeSort)
+#Merge sort
 def merge_sort(arr, profiler: Profiler):
     datos = normalizar_datos(arr)
     a = datos.copy()
@@ -220,7 +220,7 @@ def merge_sort(arr, profiler: Profiler):
     return res
 
 
-# Método Rápido (QuickSort)
+#Quick Sort
 def quick_sort(arr, profiler: Profiler):
     datos = normalizar_datos(arr)
     a = datos.copy()
@@ -254,7 +254,7 @@ def quick_sort(arr, profiler: Profiler):
     return a
 
 
-# Método de Montículo (HeapSort)
+#Heap sort
 def heap_sort(arr, profiler: Profiler):
     datos = normalizar_datos(arr)
     a = datos.copy()
@@ -268,7 +268,7 @@ def heap_sort(arr, profiler: Profiler):
     return res
 
 
-# Método de Conteo (ya compatible)
+#Counting sort
 def counting_sort(arr, profiler: Profiler):
     datos = normalizar_datos(arr)
     a = datos.copy()
@@ -299,7 +299,7 @@ def counting_sort(arr, profiler: Profiler):
     return res
 
 
-# Método Radix (ya compatible)
+#Radix Sort
 def radix_sort(arr, profiler: Profiler):
     datos = normalizar_datos(arr)
     a = datos.copy()
@@ -325,7 +325,7 @@ def radix_sort(arr, profiler: Profiler):
     return a
 
 
-# Método de Cubetas (Bucket Sort)
+#Bucket sort
 def bucket_sort(arr, profiler: Profiler):
     datos = normalizar_datos(arr)
     a = datos.copy()
@@ -361,7 +361,7 @@ def bucket_sort(arr, profiler: Profiler):
     return res
 
 
-# Método de Burbuja Bidireccional (Cocktail Sort)
+#Cocktail sort
 def cocktail_sort(arr, profiler: Profiler):
     datos = normalizar_datos(arr)
     a = datos.copy()
