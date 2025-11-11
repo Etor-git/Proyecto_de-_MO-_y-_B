@@ -11,7 +11,7 @@ Versión final para presentación — interfaz con tkinter que:
 - No muestra automáticamente los datos después de ordenar; para verlos usar Mostrar.
 - Medición detallada (ns) y opción de guardar resultados a Excel.
 - Registro de acciones y modificaciones en `mod_log.txt`.
-- Cabecera con datos de identificación del equipo (Equipo 14 - Energía - Héctor Jesús Valadez Pardo y Alberto Roman Campos).
+- Cabecera con datos de identificación del equio (Equipo 14 - Energía - Héctor Jesús Valadez Pardo y Alberto Roman Campos).
 
 Dependencias (Librerias):
  pip install pandas openpyxl matplotlib
@@ -462,34 +462,164 @@ class SortingApp:
         ctrl = ttk.Frame(self.root, padding=8)
         ctrl.pack(fill='x')
 
-        ttk.Button(ctrl, text='Cargar datos', command=self.action_cargar).pack(side='left', padx=4)
-        ttk.Button(ctrl, text='Mostrar', command=self.action_mostrar).pack(side='left', padx=4)
-        ttk.Button(ctrl, text='Ordenar', command=self.action_ordenar).pack(side='left', padx=4)
-        ttk.Button(ctrl, text='Buscar', command=self.action_buscar).pack(side='left', padx=4)
-        ttk.Button(ctrl, text='Guardar Excel', command=self.action_guardar).pack(side='left', padx=4)
-        ttk.Button(ctrl, text='Salir', command=self.root.quit).pack(side='right', padx=4)
-
-        # Área principal para tabla y gráfica
+        # ---------------- Tabla principal (Treeview) ----------------
         main = ttk.Frame(self.root, padding=8)
         main.pack(fill='both', expand=True)
 
-        # Treeview para mostrar registros
         self.tree = ttk.Treeview(main, columns=(), show='headings')
         self.tree_scroll = ttk.Scrollbar(main, orient='vertical', command=self.tree.yview)
         self.tree.configure(yscrollcommand=self.tree_scroll.set)
         self.tree.pack(side='left', fill='both', expand=True)
         self.tree_scroll.pack(side='left', fill='y')
 
-        # Panel para gráficas y leyenda
+        # Panel lateral para posibles gráficas o información
         right = ttk.Frame(main)
         right.pack(side='left', fill='both', expand=False)
-
-        self.fig, self.ax = plt.subplots(figsize=(5, 3))
-        self.canvas = FigureCanvasTkAgg(self.fig, master=right)
-        self.canvas.get_tk_widget().pack(fill='both', expand=True)
-
         self.legend_var = tk.StringVar(value='')
         ttk.Label(right, textvariable=self.legend_var, wraplength=250).pack(pady=6)
+
+        ttk.Button(ctrl, text='Cargar datos', command=self.action_cargar).pack(side='left', padx=4)
+        ttk.Button(ctrl, text='Mostrar', command=self.action_mostrar).pack(side='left', padx=4)
+        ttk.Button(ctrl, text='Ordenar', command=self.action_ordenar).pack(side='left', padx=4)
+        ttk.Button(ctrl, text='Buscar', command=self.action_buscar).pack(side='left', padx=4)
+        ttk.Button(ctrl, text='Guardar Excel', command=self.action_guardar).pack(side='left', padx=4)
+        # Botones adicionales de funcionalidad extra (Insertar, Reportes, MO Alfa)
+        ttk.Button(ctrl, text='Insertar', command=self.action_insertar).pack(side='left', padx=4)
+        ttk.Button(ctrl, text='Reportes', command=self.action_reporte).pack(side='left', padx=4)
+        ttk.Button(ctrl, text='MO Alfa', command=self.action_mo_alfa).pack(side='left', padx=4)
+        ttk.Button(ctrl, text='Salir', command=self.root.quit).pack(side='right', padx=4)
+    # ----------------- Funciones adicionales: Insertar, Reportes y MO Alfa -----------------
+
+
+
+    def action_insertar(self):
+        """
+        Abre una ventana para insertar un nuevo registro, recoge valores de las columnas del DataFrame
+        y los agrega como nueva fila.
+        """
+        if self.df_original is None:
+            messagebox.showwarning('Atención', 'Primero carga un archivo con "Cargar datos".')
+            return
+        win = tk.Toplevel(self.root)
+        win.title('Insertar nuevo registro')
+        ttk.Label(win, text='Introduce los valores para cada columna:').pack(anchor='w', padx=6, pady=(6, 0))
+        entries = {}
+        for col in self.df_original.columns:
+            ttk.Label(win, text=col).pack(anchor='w', padx=6)
+            var = tk.StringVar()
+            entry = ttk.Entry(win, textvariable=var)
+            entry.pack(fill='x', padx=6, pady=2)
+            entries[col] = var
+
+        def agregar():
+            nuevo = {col: entries[col].get() for col in self.df_original.columns}
+            # Validación simple: no permitir todos vacíos
+            if all(v.strip() == '' for v in nuevo.values()):
+                messagebox.showwarning('Atención', 'No puede insertar una fila vacía.')
+                return
+            try:
+                self.df_original.loc[len(self.df_original)] = nuevo
+                self.df_original.reset_index(drop=True, inplace=True)
+                self.df_sorted = None  # invalidar ordenado
+                self._refresh_tree(self.df_original)
+                registrar_log(f'Nuevo registro insertado: {nuevo}')
+                messagebox.showinfo('Insertar', 'Registro insertado correctamente.')
+                win.destroy()
+            except Exception as e:
+                messagebox.showerror('Error', f'No se pudo insertar el registro: {e}')
+                registrar_log('Error al insertar registro: ' + str(e))
+
+        ttk.Button(win, text='Agregar', command=agregar).pack(pady=6)
+        ttk.Button(win, text='Cancelar', command=win.destroy).pack(pady=2)
+
+    def action_reporte(self):
+        """
+        Genera un reporte en .xlsx o .txt del DataFrame actual y muestra mensaje de confirmación.
+        """
+        if self.df_original is None:
+            messagebox.showwarning('Atención', 'No hay datos para generar reporte.')
+            return
+        # Ventana para elegir formato
+        win = tk.Toplevel(self.root)
+        win.title('Generar reporte')
+        ttk.Label(win, text='Selecciona formato de reporte:').pack(anchor='w', padx=6, pady=(6, 0))
+        formato_var = tk.StringVar(value='xlsx')
+        ttk.Radiobutton(win, text='Excel (.xlsx)', variable=formato_var, value='xlsx').pack(anchor='w', padx=12)
+        ttk.Radiobutton(win, text='Texto (.txt)', variable=formato_var, value='txt').pack(anchor='w', padx=12)
+
+        def generar():
+            formato = formato_var.get()
+            if formato == 'xlsx':
+                path = filedialog.asksaveasfilename(defaultextension='.xlsx', filetypes=[('Excel', '*.xlsx')])
+                if not path:
+                    return
+                try:
+                    self.df_original.to_excel(path, index=False)
+                    registrar_log(f'Reporte generado en {path}')
+                    messagebox.showinfo('Reporte', f'Reporte generado en: {path}')
+                    win.destroy()
+                except Exception as e:
+                    messagebox.showerror('Error', f'No se pudo generar el reporte: {e}')
+                    registrar_log('Error al generar reporte xlsx: ' + str(e))
+            else:
+                path = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=[('Texto', '*.txt')])
+                if not path:
+                    return
+                try:
+                    self.df_original.to_csv(path, index=False, sep='\t')
+                    registrar_log(f'Reporte generado en {path}')
+                    messagebox.showinfo('Reporte', f'Reporte generado en: {path}')
+                    win.destroy()
+                except Exception as e:
+                    messagebox.showerror('Error', f'No se pudo generar el reporte: {e}')
+                    registrar_log('Error al generar reporte txt: ' + str(e))
+
+        ttk.Button(win, text='Generar', command=generar).pack(pady=6)
+        ttk.Button(win, text='Cancelar', command=win.destroy).pack(pady=2)
+
+    def action_mo_alfa(self):
+        """
+        Analiza el rendimiento del último método ejecutado y muestra la gráfica automáticamente.
+        """
+        if not self.last_results or 'algorithm' not in self.last_results:
+            messagebox.showinfo('MO Alfa', 'No hay resultados de ordenamiento recientes para analizar.')
+            return
+
+        alg = self.last_results.get('algorithm')
+        elapsed = self.last_results.get('elapsed_ns')
+        history = self.last_results.get('profiler_history', [])
+
+        # Mostrar resumen
+        msg = f'Método: {alg}\nTiempo total: {elapsed:,} ns'
+        registrar_log(f'[MO Alfa] {msg}')
+
+        # Ventana emergente para mostrar gráfica
+        win = tk.Toplevel(self.root)
+        win.title(f'MO Alfa - {alg}')
+        win.geometry('800x500')
+
+        ttk.Label(win, text=f'Análisis de rendimiento: {alg}', font=('Helvetica', 12, 'bold')).pack(pady=6)
+        ttk.Label(win, text=msg, font=('Helvetica', 10)).pack()
+
+        # Crear figura de rendimiento
+        fig, ax = plt.subplots(figsize=(7, 4))
+        if history:
+            ops, times = zip(*history)
+            ax.plot(times, ops, color='blue', linewidth=2)
+            ax.set_xlabel('Tiempo (segundos)')
+            ax.set_ylabel('Operaciones realizadas')
+            ax.set_title(f'Comportamiento del algoritmo {alg.strip()}')
+            ax.grid(True)
+        else:
+            ax.text(0.5, 0.5, 'Sin datos de historial para graficar',
+                    ha='center', va='center', fontsize=12, color='red')
+
+        # Integrar gráfica en la ventana
+        canvas = FigureCanvasTkAgg(fig, master=win)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill='both', expand=True)
+
+        ttk.Button(win, text='Cerrar', command=win.destroy).pack(pady=8)
 
     # ----------------- Acciones ----------------------------------------------
 
@@ -761,6 +891,9 @@ class SortingApp:
 # --------------------------- Main -----------------------------------------
 
 def main():
+    """
+    Función principal que inicia la aplicación de ordenamiento.
+    """
     try:
         root = tk.Tk()
         app = SortingApp(root)
@@ -771,5 +904,90 @@ def main():
         messagebox.showerror('Error fatal', f'La aplicación terminó por un error: {e}')
 
 
+# --------------------------- Pantalla de Login -----------------------------
+def pantalla_login():
+    """
+    Muestra una ventana de inicio de sesión con opción de registro.
+    """
+    import os
+    USERS_FILE = "usuarios.txt"
+    if not os.path.exists(USERS_FILE):
+        with open(USERS_FILE, "w", encoding="utf-8") as f:
+            f.write("admin,1234\n")
+
+    def cargar_usuarios():
+        usuarios = {}
+        with open(USERS_FILE, "r", encoding="utf-8") as f:
+            for linea in f:
+                if "," in linea:
+                    u, c = linea.strip().split(",", 1)
+                    usuarios[u] = c
+        return usuarios
+
+    def registrar_usuario():
+        reg_win = tk.Toplevel(login_win)
+        reg_win.title("Registrar nuevo usuario")
+        reg_win.geometry("280x180")
+        ttk.Label(reg_win, text="Nuevo usuario:").pack(pady=4)
+        new_user = tk.StringVar()
+        ttk.Entry(reg_win, textvariable=new_user).pack(pady=4)
+        ttk.Label(reg_win, text="Contraseña:").pack(pady=4)
+        new_pass = tk.StringVar()
+        ttk.Entry(reg_win, textvariable=new_pass, show="*").pack(pady=4)
+
+        def guardar_usuario():
+            usuarios = cargar_usuarios()
+            u, p = new_user.get().strip(), new_pass.get().strip()
+            if not u or not p:
+                messagebox.showwarning("Atención", "Completa ambos campos.")
+                return
+            if u in usuarios:
+                messagebox.showwarning("Atención", "El usuario ya existe.")
+                return
+            with open(USERS_FILE, "a", encoding="utf-8") as f:
+                f.write(f"{u},{p}\n")
+            messagebox.showinfo("Registro", "Usuario registrado correctamente.")
+            registrar_log(f"Nuevo usuario registrado: {u}")
+            reg_win.destroy()
+
+        ttk.Button(reg_win, text="Guardar", command=guardar_usuario).pack(pady=6)
+        ttk.Button(reg_win, text="Cancelar", command=reg_win.destroy).pack(pady=2)
+
+    login_win = tk.Tk()
+    login_win.title("Inicio de sesión")
+    login_win.geometry("320x200")
+    login_win.resizable(False, False)
+    # Centrar ventana si es posible
+    try:
+        login_win.eval('tk::PlaceWindow . center')
+    except Exception:
+        pass
+    ttk.Label(login_win, text="Inicio de sesión", font=("Helvetica", 14, "bold")).pack(pady=10)
+    frame = ttk.Frame(login_win, padding=10)
+    frame.pack(fill="both", expand=True)
+    ttk.Label(frame, text="Usuario:").grid(row=0, column=0, sticky="w", pady=4)
+    user_var = tk.StringVar()
+    ttk.Entry(frame, textvariable=user_var).grid(row=0, column=1, pady=4)
+    ttk.Label(frame, text="Contraseña:").grid(row=1, column=0, sticky="w", pady=4)
+    pass_var = tk.StringVar()
+    ttk.Entry(frame, textvariable=pass_var, show="*").grid(row=1, column=1, pady=4)
+
+    def intentar_login():
+        usuarios = cargar_usuarios()
+        usuario, clave = user_var.get().strip(), pass_var.get().strip()
+        if usuario in usuarios and usuarios[usuario] == clave:
+            registrar_log(f"Login exitoso ({usuario})")
+            login_win.destroy()
+            main()
+        else:
+            registrar_log(f"Intento fallido de login: {usuario}")
+            messagebox.showerror("Error", "Usuario o contraseña incorrectos.")
+
+    ttk.Button(frame, text="Ingresar", command=intentar_login).grid(row=2, column=0, pady=10)
+    ttk.Button(frame, text="Registrar nuevo usuario", command=registrar_usuario).grid(row=2, column=1, pady=10)
+    login_win.mainloop()
+
+
 if __name__ == '__main__':
-    main()
+    # Ahora inicia mostrando la pantalla de login antes de la aplicación principal
+    pantalla_login()
