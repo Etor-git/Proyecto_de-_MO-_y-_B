@@ -491,7 +491,6 @@ class SortingApp:
     # ----------------- Funciones adicionales: Insertar, Reportes y MO Alfa -----------------
 
 
-
     def action_insertar(self):
         """
         Abre una ventana para insertar un nuevo registro, recoge valores de las columnas del DataFrame
@@ -579,49 +578,87 @@ class SortingApp:
 
     def action_mo_alfa(self):
         """
-        Analiza el rendimiento del último método ejecutado y muestra la gráfica automáticamente.
+        Analiza el rendimiento de los métodos ejecutados, muestra cuáles se repiten más,
+        genera una tabla con los 11 métodos (aunque no se hayan usado) y guarda los resultados en el log.
         """
-        if not self.last_results or 'algorithm' not in self.last_results:
-            messagebox.showinfo('MO Alfa', 'No hay resultados de ordenamiento recientes para analizar.')
-            return
+        # Inicializar estadísticas si no existen
+        if not hasattr(self, 'method_stats'):
+            self.method_stats = {}
 
-        alg = self.last_results.get('algorithm')
-        elapsed = self.last_results.get('elapsed_ns')
-        history = self.last_results.get('profiler_history', [])
+        # Asegurar que existan las 11 claves en method_stats (aunque sin datos)
+        for metodo in ALGORITHMS.keys():
+            if metodo.strip() not in self.method_stats:
+                self.method_stats[metodo.strip()] = []
 
-        # Mostrar resumen
-        msg = f'Método: {alg}\nTiempo total: {elapsed:,} ns'
-        registrar_log(f'[MO Alfa] {msg}')
-
-        # Ventana emergente para mostrar gráfica
+        # Crear ventana principal
         win = tk.Toplevel(self.root)
-        win.title(f'MO Alfa - {alg}')
-        win.geometry('800x500')
+        win.title('MO Alfa - Análisis de Métodos')
+        win.geometry('950x650')
 
-        ttk.Label(win, text=f'Análisis de rendimiento: {alg}', font=('Helvetica', 12, 'bold')).pack(pady=6)
-        ttk.Label(win, text=msg, font=('Helvetica', 10)).pack()
+        ttk.Label(win, text='Análisis de Métodos de Ordenamiento (MO Alfa)', font=('Helvetica', 13, 'bold')).pack(pady=10)
 
-        # Crear figura de rendimiento
-        fig, ax = plt.subplots(figsize=(7, 4))
-        if history:
-            ops, times = zip(*history)
-            ax.plot(times, ops, color='blue', linewidth=2)
-            ax.set_xlabel('Tiempo (segundos)')
-            ax.set_ylabel('Operaciones realizadas')
-            ax.set_title(f'Comportamiento del algoritmo {alg.strip()}')
-            ax.grid(True)
+        # Calcular promedios y repeticiones
+        resumen_texto = ""
+        resumen_datos = []
+        for metodo, tiempos in self.method_stats.items():
+            ejecuciones = len(tiempos)
+            promedio = int(sum(tiempos) / ejecuciones) if ejecuciones > 0 else 0
+            resumen_datos.append((metodo.strip(), ejecuciones, promedio))
+            if ejecuciones > 0:
+                resumen_texto += f"{metodo.strip()}: {ejecuciones} ejecuciones, promedio {promedio:,} ns\n"
+            else:
+                resumen_texto += f"{metodo.strip()}: Sin ejecuciones registradas\n"
+
+        # Determinar el método más eficiente
+        metodos_con_datos = [x for x in resumen_datos if x[1] > 0]
+        if metodos_con_datos:
+            mejor = min(metodos_con_datos, key=lambda x: x[2])
+            resumen_texto += f"\nMétodo más eficiente: {mejor[0]} con {mejor[2]:,} ns (promedio)\n"
         else:
-            ax.text(0.5, 0.5, 'Sin datos de historial para graficar',
-                    ha='center', va='center', fontsize=12, color='red')
+            mejor = None
+            resumen_texto += "\nNo hay métodos ejecutados para calcular MO Alfa.\n"
 
-        # Integrar gráfica en la ventana
-        canvas = FigureCanvasTkAgg(fig, master=win)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill='both', expand=True)
+        # Identificar métodos que se repiten más
+        if metodos_con_datos:
+            max_repe = max(metodos_con_datos, key=lambda x: x[1])[1]
+            metodos_repetidos = [m for m, e, _ in resumen_datos if e == max_repe]
+            resumen_texto += f"\nMétodos que se repiten más: {', '.join(metodos_repetidos)} ({max_repe} veces)\n"
+
+        ttk.Label(win, text=resumen_texto, justify='left', wraplength=850).pack(pady=10)
+
+        # Crear tabla con todos los métodos
+        frame_tabla = ttk.Frame(win)
+        frame_tabla.pack(fill='both', expand=True, padx=10, pady=10)
+        columnas = ('Método', 'Ejecuciones', 'Promedio (ns)')
+        tabla = ttk.Treeview(frame_tabla, columns=columnas, show='headings', height=12)
+        for col in columnas:
+            tabla.heading(col, text=col)
+            tabla.column(col, anchor='center', width=250)
+        for fila in resumen_datos:
+            tabla.insert('', 'end', values=fila)
+        tabla.pack(fill='both', expand=True)
+
+        # Mostrar gráfico de rendimiento comparativo (solo métodos con datos)
+        if metodos_con_datos:
+            fig, ax = plt.subplots(figsize=(8, 4))
+            metodos = [x[0] for x in metodos_con_datos]
+            tiempos_prom = [x[2] for x in metodos_con_datos]
+            ax.barh(metodos, tiempos_prom)
+            ax.set_xlabel('Tiempo promedio (ns)')
+            ax.set_title('Comparativa de rendimiento por método (modo aleatorio)')
+            ax.grid(True, axis='x')
+            canvas = FigureCanvasTkAgg(fig, master=win)
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill='both', expand=True, pady=10)
+
+        # Guardar resultados MO Alfa en archivo de registro
+        registrar_log("\n--- [MO Alfa] Análisis completo ---\n" + resumen_texto)
+        for m, e, p in resumen_datos:
+            registrar_log(f"{m}: {e} ejecuciones, promedio {p:,} ns")
 
         ttk.Button(win, text='Cerrar', command=win.destroy).pack(pady=8)
 
-    # ----------------- Acciones ----------------------------------------------
+
 
     def action_cargar(self):
         df = cargar_datos()
@@ -726,7 +763,7 @@ class SortingApp:
             combo.current(0)
 
         ttk.Label(win, text='Selecciona método:').pack(anchor='w', padx=6, pady=(6, 0))
-        methods = ['QuickSort (Rápido)', 'MergeSort (Mezcla)', 'Aleatorio', 'Avanzado']
+        methods = ['Aleatorio', 'Avanzado', 'QuickSort (Rápido)', 'MergeSort (Mezcla)']
         method_var = tk.StringVar(value=methods[0])
         method_combo = ttk.Combobox(win, values=methods, state='readonly', textvariable=method_var)
         method_combo.pack(fill='x', padx=6, pady=4)
@@ -756,7 +793,7 @@ class SortingApp:
             elif method_choice == 'Aleatorio':
                 alg_key = random.choice(list(ALGORITHMS.keys()))
             else:
-                alg_key = '\nQuick Sort\n'
+                alg_key = '\nAleatorio\n'
 
             if not col:
                 messagebox.showwarning('Atención', 'Selecciona una columna.')
@@ -855,6 +892,11 @@ class SortingApp:
                 'elapsed_ns': elapsed_ns,
                 'profiler_history': profiler.history
             }
+
+            # Guardar estadísticas del método ejecutado para MO Alfa
+            if not hasattr(self, 'method_stats'):
+                self.method_stats = {}
+            self.method_stats.setdefault(alg_key.strip(), []).append(elapsed_ns)
 
             # mostrar leyenda (sin mostrar datos)
             self.legend_var.set(f'Ordenado por el método {alg_key} y se realizó en {elapsed_ns} nanosegundos')
