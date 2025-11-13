@@ -447,6 +447,10 @@ class SortingApp:
         self.df_sorted = None    # DataFrame ordenado (si aplica)
         self.last_results = {}   # resultados por método
         self.current_column = None
+        # Estadísticas de métodos: almacena tiempos (ns) por método para MO Alfa
+        self.method_stats = {}
+        # Indica si se ha guardado el reporte MO Alfa (evita sobrescribir accidentalmente)
+        self._mo_alfa_guardado = False
 
         self._build_ui()
 
@@ -483,10 +487,12 @@ class SortingApp:
         ttk.Button(ctrl, text='Ordenar', command=self.action_ordenar).pack(side='left', padx=4)
         ttk.Button(ctrl, text='Buscar', command=self.action_buscar).pack(side='left', padx=4)
         ttk.Button(ctrl, text='Guardar Excel', command=self.action_guardar).pack(side='left', padx=4)
-        # Botones adicionales de funcionalidad extra (Insertar, Reportes, MO Alfa)
+        # Botones adicionales de funcionalidad extra (Insertar, Reportes, MO Alfa, Ordenar Todo, Acerca de)
         ttk.Button(ctrl, text='Insertar', command=self.action_insertar).pack(side='left', padx=4)
         ttk.Button(ctrl, text='Reportes', command=self.action_reporte).pack(side='left', padx=4)
         ttk.Button(ctrl, text='MO Alfa', command=self.action_mo_alfa).pack(side='left', padx=4)
+        ttk.Button(ctrl, text='Ordenar Todo', command=self.action_ordenar_todo).pack(side='left', padx=4)
+        ttk.Button(ctrl, text='Acerca de', command=self.action_acerca_de).pack(side='left', padx=4)
         ttk.Button(ctrl, text='Salir', command=self.root.quit).pack(side='right', padx=4)
     # ----------------- Funciones adicionales: Insertar, Reportes y MO Alfa -----------------
 
@@ -530,6 +536,7 @@ class SortingApp:
 
         ttk.Button(win, text='Agregar', command=agregar).pack(pady=6)
         ttk.Button(win, text='Cancelar', command=win.destroy).pack(pady=2)
+        ttk.Button(win, text='Volver al menú', command=win.destroy).pack(pady=2)
 
     def action_reporte(self):
         """
@@ -553,8 +560,26 @@ class SortingApp:
                 if not path:
                     return
                 try:
-                    self.df_original.to_excel(path, index=False)
-                    registrar_log(f'Reporte generado en {path}')
+                    # construir DataFrame resumen de métodos
+                    resumen_df = pd.DataFrame({
+                        'Método': [], 'Ejecuciones': [], 'Promedio_ns': []
+                    })
+                    if hasattr(self, 'method_stats') and self.method_stats:
+                        resumen_df = pd.DataFrame([
+                            {'Método': m, 'Ejecuciones': len(v), 'Promedio_ns': (sum(v)//len(v) if len(v)>0 else 0)}
+                            for m, v in self.method_stats.items()
+                        ])
+                    # MO Alfa detalle (mejor método)
+                    mo_rows = []
+                    if not resumen_df.empty:
+                        mejor = resumen_df.loc[resumen_df['Promedio_ns']>0].sort_values('Promedio_ns').head(1)
+                        if not mejor.empty:
+                            mo_rows = [{'MO_Alfa': mejor.iloc[0]['Método'], 'Promedio_ns': int(mejor.iloc[0]['Promedio_ns'])}]
+                    with pd.ExcelWriter(path, engine='openpyxl') as writer:
+                        self.df_original.to_excel(writer, index=False, sheet_name='Datos')
+                        resumen_df.to_excel(writer, index=False, sheet_name='Resumen_Metodos')
+                        pd.DataFrame(mo_rows).to_excel(writer, index=False, sheet_name='MO_Alfa')
+                    registrar_log(f'Reporte (xlsx) generado en {path}')
                     messagebox.showinfo('Reporte', f'Reporte generado en: {path}')
                     win.destroy()
                 except Exception as e:
@@ -572,6 +597,65 @@ class SortingApp:
                 except Exception as e:
                     messagebox.showerror('Error', f'No se pudo generar el reporte: {e}')
                     registrar_log('Error al generar reporte txt: ' + str(e))
+    def action_acerca_de(self):
+        """
+        Muestra información del proyecto (SADCE, equipo, integrantes, objetivo y lista de campos clave).
+        """
+        try:
+            win = tk.Toplevel(self.root)
+            win.title('Acerca del Proyecto')
+            win.geometry('560x360')
+            txt = (
+                f"Proyecto: {TEAM_INFO['tema']}\n"
+                f"Equipo: {TEAM_INFO['equipo']}\n"
+                f"Integrantes: {', '.join(TEAM_INFO['integrantes'])}\n\n"
+                "Descripción:\n"
+                "Aplicación para comparar y analizar 11 métodos de ordenamiento sobre datos tabulares.\n"
+                "Permite carga de archivos (.xlsx, .csv, .txt), inserción, búsqueda, reportes y generación de MO Alfa.\n\n"
+                "Campos clave: ID_PLANTA, Tipo de Fuente, Fecha Commissioning (u otras columnas temporales).\n"
+            )
+            lbl = ttk.Label(win, text=txt, justify='left', wraplength=520)
+            lbl.pack(padx=10, pady=10)
+            ttk.Button(win, text='Cerrar', command=win.destroy).pack(pady=8)
+        except Exception as e:
+            registrar_log('Error en action_acerca_de: ' + str(e))
+
+    def action_ordenar_todo(self):
+        """
+        Ordena todas las columnas del DataFrame usando Quick Sort por defecto y registra tiempos.
+        """
+        if self.df_original is None:
+            messagebox.showwarning('Atención', 'Primero carga un archivo con "Cargar datos".')
+            return
+        try:
+            resultados = []
+            total_ns = 0
+            for col in self.df_original.columns:
+                series = self.df_original[col]
+                # Preparar lista para ordenar (mismo proceso que action_ordenar)
+                try:
+                    serie_num = pd.to_numeric(series, errors='coerce', downcast='float')
+                    if serie_num.isna().all():
+                        data_list = series.astype(str).tolist()
+                    else:
+                        data_list = serie_num.fillna(method='ffill').tolist()
+                except Exception:
+                    data_list = series.astype(str).tolist()
+                profiler = Profiler()
+                start_ns = time.perf_counter_ns()
+                sorted_vals = ALGORITHMS['\nQuick Sort\n'](data_list, profiler)
+                end_ns = time.perf_counter_ns()
+                elapsed = end_ns - start_ns
+                resultados.append((col, elapsed))
+                total_ns += elapsed
+                # registrar estadística por método (Quick Sort)
+                self.method_stats.setdefault('\nQuick Sort\n'.strip(), []).append(elapsed)
+            resumen = '\n'.join([f"{c}: {t:,} ns" for c, t in resultados])
+            messagebox.showinfo('Ordenar Todo', f'Se ordenaron {len(resultados)} columnas con Quick Sort.\nTiempo total: {total_ns:,} ns')
+            registrar_log('Ordenar Todo: ' + resumen)
+        except Exception as e:
+            registrar_log('Error en action_ordenar_todo: ' + str(e) + '\n' + traceback.format_exc())
+            messagebox.showerror('Error', f'Error al ordenar todas las columnas: {e}')
 
         ttk.Button(win, text='Generar', command=generar).pack(pady=6)
         ttk.Button(win, text='Cancelar', command=win.destroy).pack(pady=2)
@@ -645,7 +729,7 @@ class SortingApp:
             tiempos_prom = [x[2] for x in metodos_con_datos]
             ax.barh(metodos, tiempos_prom)
             ax.set_xlabel('Tiempo promedio (ns)')
-            ax.set_title('Comparativa de rendimiento por método (modo aleatorio)')
+            ax.set_title('Comparativa de rendimiento por método (el menos eficaz es el mas largo y el más eficiente es el mas largo)')
             ax.grid(True, axis='x')
             canvas = FigureCanvasTkAgg(fig, master=win)
             canvas.draw()
@@ -656,7 +740,7 @@ class SortingApp:
         for m, e, p in resumen_datos:
             registrar_log(f"{m}: {e} ejecuciones, promedio {p:,} ns")
 
-        ttk.Button(win, text='Cerrar', command=win.destroy).pack(pady=8)
+        ttk.Button(win, text='Volver al menú', command=win.destroy).pack(pady=8)
 
 
 
@@ -714,18 +798,50 @@ class SortingApp:
                 return
             # búsqueda en df_original
             try:
-                mask = self.df_original[col].astype(str).str.contains(str(val), case=False, na=False)
-                res = self.df_original[mask]
-                if res.empty:
-                    messagebox.showinfo('Resultado', 'No se encontraron coincidencias.')
+                # Si no hay df_sorted no se puede realizar búsqueda binaria
+                if self.df_sorted is None:
+                    # solo búsqueda secuencial sobre df_original
+                    lista = self.df_original[col].astype(str).tolist()
+                    idx = self.busqueda_secuencial(lista, val)
+                    metodo = 'Secuencial'
                 else:
-                    self._refresh_tree(res)
-                    messagebox.showinfo('Resultado', f'Se encontraron {len(res)} coincidencias. (Se muestran en la tabla)')
-                registrar_log(f'Búsqueda en columna "{col}" por "{val}": {len(res)} resultados')
-                win.destroy()
+                    # elegir aleatoriamente entre Secuencial y Binaria
+                    metodo = random.choice(['Secuencial', 'Binaria'])
+                    lista = self.df_sorted[col].astype(str).tolist() if metodo == 'Binaria' else self.df_original[col].astype(str).tolist()
+                    if metodo == 'Binaria':
+                        idx = self.busqueda_binaria(lista, val)
+                    else:
+                        idx = self.busqueda_secuencial(lista, val)
+
+                if idx != -1:
+                    messagebox.showinfo('Resultado', f'Valor encontrado con búsqueda {metodo} en posición {idx}.')
+                else:
+                    messagebox.showinfo('Resultado', f'Valor no encontrado usando {metodo}.')
+                registrar_log(f'Búsqueda ({metodo}) en columna "{col}" por "{val}": resultado idx={idx}')
+                # mantener ventana abierta para permitir volver al menú si el usuario desea
+                ttk.Button(win, text='Volver al menú', command=win.destroy).pack(pady=6)
             except Exception as e:
                 messagebox.showerror('Error', f'Error durante la búsqueda: {e}')
                 registrar_log('Error en búsqueda: ' + str(e))
+
+    def busqueda_secuencial(self, lista, valor):
+        for i, item in enumerate(lista):
+            if str(item).lower() == str(valor).lower():
+                return i
+        return -1
+
+    def busqueda_binaria(self, lista, valor):
+        # lista debe estar ordenada para binaria
+        izquierda, derecha = 0, len(lista) - 1
+        while izquierda <= derecha:
+            medio = (izquierda + derecha) // 2
+            if str(lista[medio]).lower() == str(valor).lower():
+                return medio
+            elif str(lista[medio]).lower() < str(valor).lower():
+                izquierda = medio + 1
+            else:
+                derecha = medio - 1
+        return -1
 
         ttk.Button(win, text='Buscar', command=do_search).pack(pady=6)
         ttk.Button(win, text='Cancelar', command=win.destroy).pack(pady=2)
