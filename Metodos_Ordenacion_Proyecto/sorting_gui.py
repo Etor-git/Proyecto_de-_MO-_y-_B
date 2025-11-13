@@ -539,65 +539,169 @@ class SortingApp:
         ttk.Button(win, text='Volver al menú', command=win.destroy).pack(pady=2)
 
     def action_reporte(self):
-        """Genera un reporte en formato .xlsx o .txt con estadísticas de métodos."""
+        """Genera un reporte en formato .xlsx o .txt con estadísticas de métodos, búsquedas o MO Alfa."""
         if self.df_original is None or self.df_original.empty:
             messagebox.showwarning("Advertencia", "No hay datos cargados para generar reporte.")
             return
 
         win = tk.Toplevel(self.root)
         win.title("Generar reporte")
-        win.geometry("300x230")
+        win.geometry("330x320")
         win.configure(bg="#222")
 
-        ttk.Label(win, text="Selecciona formato:", background="#222", foreground="white").pack(pady=5)
+        # Selección de tipo de reporte
+        ttk.Label(win, text="Selecciona tipo de reporte:", background="#222", foreground="white").pack(pady=(8, 3))
+        tipo_reporte_var = tk.StringVar(value='Ordenamiento')
+        ttk.Radiobutton(win, text='Ordenamiento', variable=tipo_reporte_var, value='Ordenamiento').pack(pady=2)
+        ttk.Radiobutton(win, text='Búsqueda', variable=tipo_reporte_var, value='Búsqueda').pack(pady=2)
+        ttk.Radiobutton(win, text='MO Alfa', variable=tipo_reporte_var, value='MO Alfa').pack(pady=2)
+
+        ttk.Label(win, text="Selecciona formato:", background="#222", foreground="white").pack(pady=10)
         formato_var = tk.StringVar(value='xlsx')
         ttk.Radiobutton(win, text='Excel (.xlsx)', variable=formato_var, value='xlsx').pack(pady=3)
         ttk.Radiobutton(win, text='Texto (.txt)', variable=formato_var, value='txt').pack(pady=3)
 
         def generar():
             formato = formato_var.get()
-            if formato == 'xlsx':
-                path = filedialog.asksaveasfilename(defaultextension='.xlsx', filetypes=[('Excel', '*.xlsx')])
-                if not path:
+            tipo_reporte = tipo_reporte_var.get()
+            if tipo_reporte == 'Ordenamiento':
+                # Reporte de métodos de ordenamiento (como antes)
+                if formato == 'xlsx':
+                    path = filedialog.asksaveasfilename(defaultextension='.xlsx', filetypes=[('Excel', '*.xlsx')])
+                    if not path:
+                        return
+                    try:
+                        resumen_df = pd.DataFrame({
+                            'Método': [], 'Ejecuciones': [], 'Promedio_ns': []
+                        })
+                        if hasattr(self, 'method_stats') and self.method_stats:
+                            resumen_df = pd.DataFrame([
+                                {'Método': m, 'Ejecuciones': len(v), 'Promedio_ns': (sum(v)//len(v) if len(v)>0 else 0)}
+                                for m, v in self.method_stats.items()
+                            ])
+                        mo_rows = []
+                        if not resumen_df.empty:
+                            mejor = resumen_df.loc[resumen_df['Promedio_ns']>0].sort_values('Promedio_ns').head(1)
+                            if not mejor.empty:
+                                mo_rows = [{'MO_Alfa': mejor.iloc[0]['Método'], 'Promedio_ns': int(mejor.iloc[0]['Promedio_ns'])}]
+                        with pd.ExcelWriter(path, engine='openpyxl') as writer:
+                            self.df_original.to_excel(writer, index=False, sheet_name='Datos')
+                            resumen_df.to_excel(writer, index=False, sheet_name='Resumen_Metodos')
+                            pd.DataFrame(mo_rows).to_excel(writer, index=False, sheet_name='MO_Alfa')
+                        registrar_log(f'Reporte (xlsx) generado en {path}')
+                        messagebox.showinfo('Reporte', f'Reporte generado en: {path}')
+                        win.destroy()
+                    except Exception as e:
+                        messagebox.showerror('Error', f'No se pudo generar el reporte: {e}')
+                        registrar_log('Error al generar reporte xlsx: ' + str(e))
+                else:
+                    path = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=[('Texto', '*.txt')])
+                    if not path:
+                        return
+                    try:
+                        # Guardar los datos originales y resumen de métodos en texto
+                        with open(path, 'w', encoding='utf-8') as f:
+                            f.write("Datos:\n")
+                            self.df_original.to_csv(f, index=False, sep='\t')
+                            f.write("\nResumen de métodos:\n")
+                            if hasattr(self, 'method_stats') and self.method_stats:
+                                for m, v in self.method_stats.items():
+                                    promedio = (sum(v)//len(v) if len(v)>0 else 0)
+                                    f.write(f"{m}: {len(v)} ejecuciones, promedio {promedio:,} ns\n")
+                        registrar_log(f'Reporte generado en {path}')
+                        messagebox.showinfo('Reporte', f'Reporte generado en: {path}')
+                        win.destroy()
+                    except Exception as e:
+                        messagebox.showerror('Error', f'No se pudo generar el reporte: {e}')
+                        registrar_log('Error al generar reporte txt: ' + str(e))
+            elif tipo_reporte == 'Búsqueda':
+                # Reporte solo de búsquedas del log
+                import os
+                if not os.path.exists(LOG_FILE):
+                    messagebox.showwarning('Advertencia', 'No se encontró el archivo de log.')
                     return
                 try:
-                    resumen_df = pd.DataFrame({
-                        'Método': [], 'Ejecuciones': [], 'Promedio_ns': []
-                    })
-                    if hasattr(self, 'method_stats') and self.method_stats:
+                    with open(LOG_FILE, 'r', encoding='utf-8') as f:
+                        lines = f.readlines()
+                    # Filtrar solo líneas que sean de búsquedas
+                    busquedas = [line for line in lines if 'Búsqueda' in line or 'búsqueda' in line]
+                    if not busquedas:
+                        messagebox.showwarning('Advertencia', 'No se encontraron registros de búsqueda en el log.')
+                        return
+                    if formato == 'xlsx':
+                        path = filedialog.asksaveasfilename(defaultextension='.xlsx', filetypes=[('Excel', '*.xlsx')])
+                        if not path:
+                            return
+                        # Guardar las búsquedas en un DataFrame
+                        df_busq = pd.DataFrame({'Búsquedas': [b.strip() for b in busquedas]})
+                        with pd.ExcelWriter(path, engine='openpyxl') as writer:
+                            df_busq.to_excel(writer, index=False, sheet_name='Busquedas')
+                        registrar_log(f'Reporte de búsquedas (xlsx) generado en {path}')
+                        messagebox.showinfo('Reporte', f'Reporte de búsquedas generado en: {path}')
+                        win.destroy()
+                    else:
+                        path = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=[('Texto', '*.txt')])
+                        if not path:
+                            return
+                        with open(path, 'w', encoding='utf-8') as fout:
+                            fout.write("Registros de Búsqueda:\n")
+                            for b in busquedas:
+                                fout.write(b)
+                        registrar_log(f'Reporte de búsquedas (txt) generado en {path}')
+                        messagebox.showinfo('Reporte', f'Reporte de búsquedas generado en: {path}')
+                        win.destroy()
+                except Exception as e:
+                    messagebox.showerror('Error', f'No se pudo generar el reporte de búsquedas: {e}')
+                    registrar_log('Error al generar reporte de búsquedas: ' + str(e))
+            elif tipo_reporte == 'MO Alfa':
+                # Solo el análisis del mejor método (como bloque mo_rows)
+                if formato == 'xlsx':
+                    path = filedialog.asksaveasfilename(defaultextension='.xlsx', filetypes=[('Excel', '*.xlsx')])
+                    if not path:
+                        return
+                    try:
                         resumen_df = pd.DataFrame([
                             {'Método': m, 'Ejecuciones': len(v), 'Promedio_ns': (sum(v)//len(v) if len(v)>0 else 0)}
                             for m, v in self.method_stats.items()
-                        ])
-                    mo_rows = []
-                    if not resumen_df.empty:
-                        mejor = resumen_df.loc[resumen_df['Promedio_ns']>0].sort_values('Promedio_ns').head(1)
-                        if not mejor.empty:
-                            mo_rows = [{'MO_Alfa': mejor.iloc[0]['Método'], 'Promedio_ns': int(mejor.iloc[0]['Promedio_ns'])}]
-                    with pd.ExcelWriter(path, engine='openpyxl') as writer:
-                        self.df_original.to_excel(writer, index=False, sheet_name='Datos')
-                        resumen_df.to_excel(writer, index=False, sheet_name='Resumen_Metodos')
-                        pd.DataFrame(mo_rows).to_excel(writer, index=False, sheet_name='MO_Alfa')
-                    registrar_log(f'Reporte (xlsx) generado en {path}')
-                    messagebox.showinfo('Reporte', f'Reporte generado en: {path}')
-                    win.destroy()
-                except Exception as e:
-                    messagebox.showerror('Error', f'No se pudo generar el reporte: {e}')
-                    registrar_log('Error al generar reporte xlsx: ' + str(e))
-            else:
-                path = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=[('Texto', '*.txt')])
-                if not path:
-                    return
-                try:
-                    self.df_original.to_csv(path, index=False, sep='\t')
-                    registrar_log(f'Reporte generado en {path}')
-                    messagebox.showinfo('Reporte', f'Reporte generado en: {path}')
-                    win.destroy()
-                except Exception as e:
-                    messagebox.showerror('Error', f'No se pudo generar el reporte: {e}')
-                    registrar_log('Error al generar reporte txt: ' + str(e))
+                        ]) if hasattr(self, 'method_stats') and self.method_stats else pd.DataFrame()
+                        mo_rows = []
+                        if not resumen_df.empty:
+                            mejor = resumen_df.loc[resumen_df['Promedio_ns']>0].sort_values('Promedio_ns').head(1)
+                            if not mejor.empty:
+                                mo_rows = [{'MO_Alfa': mejor.iloc[0]['Método'], 'Promedio_ns': int(mejor.iloc[0]['Promedio_ns'])}]
+                        with pd.ExcelWriter(path, engine='openpyxl') as writer:
+                            pd.DataFrame(mo_rows).to_excel(writer, index=False, sheet_name='MO_Alfa')
+                        registrar_log(f'Reporte MO Alfa (xlsx) generado en {path}')
+                        messagebox.showinfo('Reporte', f'Reporte MO Alfa generado en: {path}')
+                        win.destroy()
+                    except Exception as e:
+                        messagebox.showerror('Error', f'No se pudo generar el reporte MO Alfa: {e}')
+                        registrar_log('Error al generar reporte MO Alfa xlsx: ' + str(e))
+                else:
+                    path = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=[('Texto', '*.txt')])
+                    if not path:
+                        return
+                    try:
+                        resumen_df = pd.DataFrame([
+                            {'Método': m, 'Ejecuciones': len(v), 'Promedio_ns': (sum(v)//len(v) if len(v)>0 else 0)}
+                            for m, v in self.method_stats.items()
+                        ]) if hasattr(self, 'method_stats') and self.method_stats else pd.DataFrame()
+                        mo_txt = ""
+                        if not resumen_df.empty:
+                            mejor = resumen_df.loc[resumen_df['Promedio_ns']>0].sort_values('Promedio_ns').head(1)
+                            if not mejor.empty:
+                                mo_txt = f"MO_Alfa: {mejor.iloc[0]['Método']}, Promedio_ns: {int(mejor.iloc[0]['Promedio_ns'])}\n"
+                        with open(path, 'w', encoding='utf-8') as f:
+                            f.write("Reporte MO Alfa\n")
+                            f.write(mo_txt)
+                        registrar_log(f'Reporte MO Alfa (txt) generado en {path}')
+                        messagebox.showinfo('Reporte', f'Reporte MO Alfa generado en: {path}')
+                        win.destroy()
+                    except Exception as e:
+                        messagebox.showerror('Error', f'No se pudo generar el reporte MO Alfa: {e}')
+                        registrar_log('Error al generar reporte MO Alfa txt: ' + str(e))
 
-        ttk.Button(win, text='Generar', command=generar).pack(pady=6)
+        ttk.Button(win, text='Generar', command=generar).pack(pady=10)
         ttk.Button(win, text='Cancelar', command=win.destroy).pack(pady=2)
 
     def action_acerca_de(self):
@@ -615,7 +719,7 @@ class SortingApp:
                 "Descripción:\n"
                 "Aplicación para comparar y analizar 11 métodos de ordenamiento sobre datos tabulares.\n"
                 "Permite carga de archivos (.xlsx, .csv, .txt), inserción, búsqueda, reportes y generación de MO Alfa.\n\n"
-                "Campos clave: ID_PLANTA, Tipo de Fuente, Fecha Commissioning (u otras columnas temporales).\n"
+                "Campos clave: ID_PLANTA, Tipo de Fuente, Fecha (u otras columnas temporales).\n"
             )
             lbl = ttk.Label(win, text=txt, justify='left', wraplength=520)
             lbl.pack(padx=10, pady=10)
