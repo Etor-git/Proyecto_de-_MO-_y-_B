@@ -539,19 +539,20 @@ class SortingApp:
         ttk.Button(win, text='Volver al menú', command=win.destroy).pack(pady=2)
 
     def action_reporte(self):
-        """
-        Genera un reporte en .xlsx o .txt del DataFrame actual y muestra mensaje de confirmación.
-        """
-        if self.df_original is None:
-            messagebox.showwarning('Atención', 'No hay datos para generar reporte.')
+        """Genera un reporte en formato .xlsx o .txt con estadísticas de métodos."""
+        if self.df_original is None or self.df_original.empty:
+            messagebox.showwarning("Advertencia", "No hay datos cargados para generar reporte.")
             return
-        # Ventana para elegir formato
+
         win = tk.Toplevel(self.root)
-        win.title('Generar reporte')
-        ttk.Label(win, text='Selecciona formato de reporte:').pack(anchor='w', padx=6, pady=(6, 0))
+        win.title("Generar reporte")
+        win.geometry("300x230")
+        win.configure(bg="#222")
+
+        ttk.Label(win, text="Selecciona formato:", background="#222", foreground="white").pack(pady=5)
         formato_var = tk.StringVar(value='xlsx')
-        ttk.Radiobutton(win, text='Excel (.xlsx)', variable=formato_var, value='xlsx').pack(anchor='w', padx=12)
-        ttk.Radiobutton(win, text='Texto (.txt)', variable=formato_var, value='txt').pack(anchor='w', padx=12)
+        ttk.Radiobutton(win, text='Excel (.xlsx)', variable=formato_var, value='xlsx').pack(pady=3)
+        ttk.Radiobutton(win, text='Texto (.txt)', variable=formato_var, value='txt').pack(pady=3)
 
         def generar():
             formato = formato_var.get()
@@ -560,7 +561,6 @@ class SortingApp:
                 if not path:
                     return
                 try:
-                    # construir DataFrame resumen de métodos
                     resumen_df = pd.DataFrame({
                         'Método': [], 'Ejecuciones': [], 'Promedio_ns': []
                     })
@@ -569,7 +569,6 @@ class SortingApp:
                             {'Método': m, 'Ejecuciones': len(v), 'Promedio_ns': (sum(v)//len(v) if len(v)>0 else 0)}
                             for m, v in self.method_stats.items()
                         ])
-                    # MO Alfa detalle (mejor método)
                     mo_rows = []
                     if not resumen_df.empty:
                         mejor = resumen_df.loc[resumen_df['Promedio_ns']>0].sort_values('Promedio_ns').head(1)
@@ -597,6 +596,10 @@ class SortingApp:
                 except Exception as e:
                     messagebox.showerror('Error', f'No se pudo generar el reporte: {e}')
                     registrar_log('Error al generar reporte txt: ' + str(e))
+
+        ttk.Button(win, text='Generar', command=generar).pack(pady=6)
+        ttk.Button(win, text='Cancelar', command=win.destroy).pack(pady=2)
+
     def action_acerca_de(self):
         """
         Muestra información del proyecto (SADCE, equipo, integrantes, objetivo y lista de campos clave).
@@ -656,9 +659,6 @@ class SortingApp:
         except Exception as e:
             registrar_log('Error en action_ordenar_todo: ' + str(e) + '\n' + traceback.format_exc())
             messagebox.showerror('Error', f'Error al ordenar todas las columnas: {e}')
-
-        ttk.Button(win, text='Generar', command=generar).pack(pady=6)
-        ttk.Button(win, text='Cancelar', command=win.destroy).pack(pady=2)
 
     def action_mo_alfa(self):
         """
@@ -769,82 +769,99 @@ class SortingApp:
             registrar_log('Usuario solicitó visualizar datos originales.')
 
     def action_buscar(self):
-        if self.df_original is None:
-            messagebox.showwarning('Atención', 'Primero carga un archivo con "Cargar datos".')
+        """Abre ventana para buscar un registro (búsqueda secuencial o binaria)."""
+        if self.df_original is None or self.df_original.empty:
+            messagebox.showwarning("Advertencia", "Primero carga los datos antes de buscar.")
             return
-        # Ventana para buscar
+
         win = tk.Toplevel(self.root)
-        win.title('Buscar registro')
-        ttk.Label(win, text='Selecciona columna:').pack(anchor='w', padx=6, pady=(6, 0))
-        cols = list(self.df_original.columns)
-        col_var = tk.StringVar()
-        combo = ttk.Combobox(win, values=cols, state='readonly', textvariable=col_var)
-        combo.pack(fill='x', padx=6, pady=4)
-        if cols:
-            combo.current(0)
+        win.title("Buscar registro")
+        win.geometry("340x240")
+        win.configure(bg="#222")
 
-        ttk.Label(win, text='Valor a buscar:').pack(anchor='w', padx=6, pady=(6, 0))
-        val_var = tk.StringVar()
-        ttk.Entry(win, textvariable=val_var).pack(fill='x', padx=6, pady=4)
+        ttk.Label(win, text="Selecciona columna:", background="#222", foreground="white").pack(pady=4)
+        col_var = tk.StringVar(value=self.df_original.columns[0])
+        ttk.Combobox(win, textvariable=col_var, values=list(self.df_original.columns)).pack(pady=3)
 
-        def do_search():
-            col = col_var.get()
-            val = val_var.get()
-            if not col:
-                messagebox.showwarning('Atención', 'Selecciona una columna.')
+        ttk.Label(win, text="Valor a buscar:", background="#222", foreground="white").pack(pady=4)
+        val_entry = ttk.Entry(win)
+        val_entry.pack(pady=3)
+
+        def ejecutar_busqueda():
+            columna = col_var.get()
+            valor = val_entry.get().strip()
+            if not valor:
+                messagebox.showwarning("Advertencia", "Introduce un valor para buscar.")
                 return
-            if val == '':
-                messagebox.showwarning('Atención', 'Introduce un valor a buscar.')
-                return
-            # búsqueda en df_original
+
             try:
-                # Si no hay df_sorted no se puede realizar búsqueda binaria
-                if self.df_sorted is None:
-                    # solo búsqueda secuencial sobre df_original
-                    lista = self.df_original[col].astype(str).tolist()
-                    idx = self.busqueda_secuencial(lista, val)
-                    metodo = 'Secuencial'
-                else:
-                    # elegir aleatoriamente entre Secuencial y Binaria
-                    metodo = random.choice(['Secuencial', 'Binaria'])
-                    lista = self.df_sorted[col].astype(str).tolist() if metodo == 'Binaria' else self.df_original[col].astype(str).tolist()
-                    if metodo == 'Binaria':
-                        idx = self.busqueda_binaria(lista, val)
-                    else:
-                        idx = self.busqueda_secuencial(lista, val)
+                try:
+                    valor = float(valor) if "." in valor else int(valor)
+                except ValueError:
+                    try:
+                        valor = pd.to_datetime(valor, errors='raise')
+                    except Exception:
+                        pass
 
-                if idx != -1:
-                    messagebox.showinfo('Resultado', f'Valor encontrado con búsqueda {metodo} en posición {idx}.')
+                metodo = random.choice(["Secuencial", "Binaria"])
+                encontrado = False
+                indice = -1
+                inicio = time.perf_counter_ns()
+
+                df_ref = self.df_sorted if hasattr(self, 'df_sorted') and self.df_sorted is not None else self.df_original
+                datos = df_ref[columna].tolist()
+
+                if metodo == "Binaria" and all(isinstance(x, (int, float, pd.Timestamp)) for x in datos):
+                    datos_convertidos = []
+                    for x in datos:
+                        if isinstance(x, pd.Timestamp):
+                            datos_convertidos.append(x.timestamp())
+                        elif isinstance(x, (int, float)):
+                            datos_convertidos.append(float(x))
+                        else:
+                            datos_convertidos.append(float('inf'))
+
+                    datos_ordenados = sorted(enumerate(datos_convertidos), key=lambda x: x[1])
+                    indices, valores = zip(*datos_ordenados)
+                    valor_num = valor.timestamp() if isinstance(valor, pd.Timestamp) else float(valor)
+                    low, high = 0, len(valores) - 1
+                    while low <= high:
+                        mid = (low + high) // 2
+                        if valores[mid] == valor_num:
+                            indice = indices[mid]
+                            encontrado = True
+                            break
+                        elif valores[mid] < valor_num:
+                            low = mid + 1
+                        else:
+                            high = mid - 1
                 else:
-                    messagebox.showinfo('Resultado', f'Valor no encontrado usando {metodo}.')
-                registrar_log(f'Búsqueda ({metodo}) en columna "{col}" por "{val}": resultado idx={idx}')
-                # mantener ventana abierta para permitir volver al menú si el usuario desea
-                ttk.Button(win, text='Volver al menú', command=win.destroy).pack(pady=6)
+                    for i, v in enumerate(datos):
+                        if str(v).lower() == str(valor).lower():
+                            indice = i
+                            encontrado = True
+                            break
+
+                fin = time.perf_counter_ns()
+                duracion = fin - inicio
+
+                if encontrado:
+                    resultado = df_ref.iloc[indice].to_dict()
+                    resultado_txt = "\n".join([f"{k}: {v}" for k, v in resultado.items()])
+                    messagebox.showinfo("Resultado",
+                        f"Método usado: {metodo}\nDuración: {duracion} ns\n\nRegistro encontrado:\n\n{resultado_txt}")
+                else:
+                    messagebox.showwarning("No encontrado",
+                        f"El valor '{valor}' no se encontró en la columna '{columna}'.\nMétodo usado: {metodo}\nTiempo: {duracion} ns")
+
+                registrar_log(f"Búsqueda con {metodo} - Columna: {columna} - Valor: {valor} - Tiempo: {duracion} ns")
             except Exception as e:
-                messagebox.showerror('Error', f'Error durante la búsqueda: {e}')
-                registrar_log('Error en búsqueda: ' + str(e))
+                messagebox.showerror("Error", f"No se pudo realizar la búsqueda: {e}")
+                registrar_log("Error en búsqueda: " + str(e))
 
-    def busqueda_secuencial(self, lista, valor):
-        for i, item in enumerate(lista):
-            if str(item).lower() == str(valor).lower():
-                return i
-        return -1
+        ttk.Button(win, text="Buscar", command=ejecutar_busqueda).pack(pady=6)
+        ttk.Button(win, text="Volver al menú", command=win.destroy).pack(pady=3)
 
-    def busqueda_binaria(self, lista, valor):
-        # lista debe estar ordenada para binaria
-        izquierda, derecha = 0, len(lista) - 1
-        while izquierda <= derecha:
-            medio = (izquierda + derecha) // 2
-            if str(lista[medio]).lower() == str(valor).lower():
-                return medio
-            elif str(lista[medio]).lower() < str(valor).lower():
-                izquierda = medio + 1
-            else:
-                derecha = medio - 1
-        return -1
-
-        ttk.Button(win, text='Buscar', command=do_search).pack(pady=6)
-        ttk.Button(win, text='Cancelar', command=win.destroy).pack(pady=2)
 
     def action_guardar(self):
         if self.df_sorted is None and self.df_original is None:
