@@ -907,13 +907,18 @@ class SortingApp:
                     except Exception:
                         pass
 
-                metodo = random.choice(["Secuencial", "Binaria"])
+                # Elegir método: Binaria solo si la columna está ordenada
+                df_ref = self.df_sorted if hasattr(self, 'df_sorted') and self.df_sorted is not None else self.df_original
+                datos = df_ref[columna].tolist()
+                esta_ordenada = datos == sorted(datos, key=lambda x: (str(type(x)), x))
+                if all(esta_ordenada):
+                    metodo = "Binaria"
+                else:
+                    metodo = "Secuencial"
+
                 encontrado = False
                 indice = -1
                 inicio = time.perf_counter_ns()
-
-                df_ref = self.df_sorted if hasattr(self, 'df_sorted') and self.df_sorted is not None else self.df_original
-                datos = df_ref[columna].tolist()
 
                 if metodo == "Binaria" and all(isinstance(x, (int, float, pd.Timestamp)) for x in datos):
                     datos_convertidos = []
@@ -954,9 +959,11 @@ class SortingApp:
                     resultado_txt = "\n".join([f"{k}: {v}" for k, v in resultado.items()])
                     messagebox.showinfo("Resultado",
                         f"Método usado: {metodo}\nDuración: {duracion} ns\n\nRegistro encontrado:\n\n{resultado_txt}")
+                    win.destroy()
                 else:
                     messagebox.showwarning("No encontrado",
                         f"El valor '{valor}' no se encontró en la columna '{columna}'.\nMétodo usado: {metodo}\nTiempo: {duracion} ns")
+                    win.destroy()
 
                 registrar_log(f"Búsqueda con {metodo} - Columna: {columna} - Valor: {valor} - Tiempo: {duracion} ns")
             except Exception as e:
