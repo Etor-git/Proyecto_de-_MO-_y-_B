@@ -11,7 +11,7 @@ Versión final para presentación — interfaz con tkinter que:
 - No muestra automáticamente los datos después de ordenar; para verlos usar Mostrar.
 - Medición detallada (ns) y opción de guardar resultados a Excel.
 - Registro de acciones y modificaciones en `mod_log.txt`.
-- Cabecera con datos de identificación del equio (Equipo 14 - Energía - Héctor Jesús Valadez Pardo y Alberto Roman Campos).
+- Cabecera con datos de identificación del equipo (Equipo 14 - Energía - Héctor Jesús Valadez Pardo y Alberto Roman Campos).
 
 Dependencias (Librerias):
  pip install pandas openpyxl matplotlib
