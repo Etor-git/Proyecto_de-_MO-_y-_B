@@ -924,9 +924,33 @@ class SortingApp:
                 inicio = time.perf_counter_ns()
 
                 if metodo == "Secuencial":
-                    # Secuencial búsqueda (no ordenada)
+                    # Búsqueda secuencial mejorada con soporte para fechas y números
                     for i, v in enumerate(datos):
-                        if str(v).lower() == str(valor).lower():
+                        try:
+                            # Intentar comparar como fecha
+                            v_dt = pd.to_datetime(v, errors='coerce')
+                            valor_dt = pd.to_datetime(valor, errors='coerce')
+                            if not pd.isna(v_dt) and not pd.isna(valor_dt):
+                                if v_dt == valor_dt:
+                                    indice = i
+                                    encontrado = True
+                                    break
+                        except:
+                            pass
+
+                        try:
+                            # Intentar comparar como número
+                            v_num = float(v)
+                            valor_num = float(valor)
+                            if v_num == valor_num:
+                                indice = i
+                                encontrado = True
+                                break
+                        except:
+                            pass
+
+                        # Comparación como texto
+                        if str(v).lower().strip() == str(valor).lower().strip():
                             indice = i
                             encontrado = True
                             break
