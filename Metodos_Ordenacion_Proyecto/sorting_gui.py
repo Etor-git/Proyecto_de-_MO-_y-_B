@@ -917,7 +917,7 @@ class SortingApp:
                     metodos_disponibles.append("Binaria")
 
                 # Selección automática: si está ordenada → Binaria, si no → Secuencial
-                metodo = "Secuencial"
+                metodo = "Binaria" if esta_ordenada else "Secuencial"
 
                 encontrado = False
                 indice = -1
