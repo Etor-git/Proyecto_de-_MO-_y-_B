@@ -911,6 +911,11 @@ class SortingApp:
                 df_ref = self.df_sorted if hasattr(self, 'df_sorted') and self.df_sorted is not None else self.df_original
                 datos = df_ref[columna].tolist()
                 esta_ordenada = datos == sorted(datos, key=lambda x: (str(type(x)), x))
+                # Nuevo bloque para métodos disponibles y selección predeterminada
+                metodos_disponibles = ["Secuencial"]
+                if esta_ordenada:
+                    metodos_disponibles.append("Binaria")
+                # If ordered, default to Binaria; otherwise Secuencial
                 metodo = "Binaria" if esta_ordenada else "Secuencial"
 
                 encontrado = False
