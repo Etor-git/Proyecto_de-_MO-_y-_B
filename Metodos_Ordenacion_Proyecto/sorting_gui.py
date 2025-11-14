@@ -915,21 +915,22 @@ class SortingApp:
                 metodos_disponibles = ["Secuencial"]
                 if esta_ordenada:
                     metodos_disponibles.append("Binaria")
-                # If ordered, default to "Secuencial y Binaria"; otherwise Secuencial
-                metodo = "Secuencial y Binaria" if esta_ordenada else "Secuencial"
+
+                # Selección automática: si está ordenada → Binaria, si no → Secuencial
+                metodo = "Binaria" if esta_ordenada else "Secuencial"
 
                 encontrado = False
                 indice = -1
                 inicio = time.perf_counter_ns()
 
-                if metodo.startswith("Secuencial") and not esta_ordenada:
+                if metodo == "Secuencial":
                     # Secuencial búsqueda (no ordenada)
                     for i, v in enumerate(datos):
                         if str(v).lower() == str(valor).lower():
                             indice = i
                             encontrado = True
                             break
-                else:
+                elif metodo == "Binaria":
                     # Binaria preferente, pero si no es aplicable, usar secuencial
                     if all(isinstance(x, (int, float, pd.Timestamp)) for x in datos):
                         datos_convertidos = []
