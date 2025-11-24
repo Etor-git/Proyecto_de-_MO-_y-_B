@@ -26,7 +26,6 @@ Notas:
 
 import time
 import random
-import math
 import heapq
 import traceback
 from datetime import datetime
@@ -493,6 +492,9 @@ class SortingApp:
         ttk.Button(ctrl, text='MO Alfa', command=self.action_mo_alfa).pack(side='left', padx=4)
         ttk.Button(ctrl, text='Ordenar Todo', command=self.action_ordenar_todo).pack(side='left', padx=4)
         ttk.Button(ctrl, text='Acerca de', command=self.action_acerca_de).pack(side='left', padx=4)
+        ttk.Button(ctrl, text='Explicación Ordenamiento', command=self.action_explicacion_ordenamiento).pack(side='left', padx=4)
+        ttk.Button(ctrl, text='Explicación Búsqueda', command=self.action_explicacion_busqueda).pack(side='left',padx=4)
+        ttk.Button(ctrl, text='Campos Clave', command=self.action_campos_clave).pack(side='left', padx=4)
         ttk.Button(ctrl, text='Salir', command=self.root.quit).pack(side='right', padx=4)
     # ----------------- Funciones adicionales: Insertar, Reportes y MO Alfa -----------------
 
@@ -560,6 +562,7 @@ class SortingApp:
         formato_var = tk.StringVar(value='xlsx')
         ttk.Radiobutton(win, text='Excel (.xlsx)', variable=formato_var, value='xlsx').pack(pady=3)
         ttk.Radiobutton(win, text='Texto (.txt)', variable=formato_var, value='txt').pack(pady=3)
+        ttk.Radiobutton(win, text='CSV (.csv)', variable=formato_var, value='csv').pack(pady=3)
 
         def generar():
             formato = formato_var.get()
@@ -567,6 +570,33 @@ class SortingApp:
             if tipo_reporte == 'Ordenamiento':
                 # Reporte de métodos de ordenamiento (como antes)
                 if formato == 'xlsx':
+                    if formato == 'txt':
+                        path = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=[('Texto', '*.txt')])
+                        if not path:
+                            return
+                        with open(path, 'w', encoding='utf-8') as f:
+                            f.write(contenido)
+                        win.destroy()
+
+                    elif formato == 'xlsx':
+                        path = filedialog.asksaveasfilename(defaultextension='.xlsx', filetypes=[('Excel', '*.xlsx')])
+                        if not path:
+                            return
+                        self.df_original.to_excel(path, index=False)
+                        win.destroy()
+
+                    elif formato == 'csv':  # ← AQUI LO AGREGAS
+                        path = filedialog.asksaveasfilename(defaultextension='.csv', filetypes=[('CSV', '*.csv')])
+                        if not path:
+                            return
+                        self.df_original.to_csv(path, index=False)
+                        registrar_log(f'Reporte CSV generado en {path}')
+                        messagebox.showinfo('Reporte', 'Reporte CSV generado correctamente.')
+                        win.destroy()
+
+                    else:
+                        messagebox.showwarning('Advertencia', 'Selecciona un formato para guardar.')
+
                     path = filedialog.asksaveasfilename(defaultextension='.xlsx', filetypes=[('Excel', '*.xlsx')])
                     if not path:
                         return
@@ -727,6 +757,76 @@ class SortingApp:
         except Exception as e:
             registrar_log('Error en action_acerca_de: ' + str(e))
 
+    def action_explicacion_ordenamiento(self):
+        """
+        Muestra una ventana con la explicación teórica de los métodos de ordenamiento.
+        Cumple con el punto del PDF donde la profesora escogerá un método a explicar.
+        """
+        win = tk.Toplevel(self.root)
+        win.title("Explicación de Ordenamientos")
+        win.geometry("650x520")
+
+        texto = (
+            "Explicación de Métodos de Ordenamiento\n\n"
+            "• QuickSort: Método recursivo basado en 'divide y vencerás', elige un pivote y separa\n"
+            "  valores menores de mayores. Es muy rápido O(n log n) promedio.\n\n"
+            "• MergeSort: Divide la lista en mitades, las ordena y las mezcla. Estable y O(n log n).\n\n"
+            "• HeapSort: Construye un montículo y extrae el mayor/mínimo repetidamente.\n\n"
+            "• RadixSort: Ordena por dígitos desde el menos significativo.\n\n"
+            "• CountingSort: Cuenta ocurrencias y reconstruye. Solo funciona bien con números.\n\n"
+            "• BucketSort: Distribuye elementos en cubetas y luego las ordena.\n\n"
+            "• Burbuja / Selección / Inserción: Métodos simples, O(n²), usados para grupos pequeños."
+        )
+
+        ttk.Label(win, text=texto, justify='left', wraplength=620).pack(padx=10, pady=10)
+        ttk.Button(win, text="Cerrar", command=win.destroy).pack(pady=8)
+        ttk.Button(ctrl, text='Explicación Búsqueda', command=self.action_explicacion_busqueda).pack(side='left',padx=4)
+
+    def action_explicacion_busqueda(self):
+        """
+        Explica los métodos de búsqueda según lo pide la lista del PDF.
+        """
+        win = tk.Toplevel(self.root)
+        win.title("Explicación de Búsquedas")
+        win.geometry("650x450")
+
+        texto = (
+            "Explicación de Métodos de Búsqueda\n\n"
+            "• Secuencial: Recorre uno por uno cada registro hasta encontrarlo.\n"
+            "  Funciona sobre datos ordenados y desordenados.\n\n"
+            "• Binaria: Solo funciona si los datos están previamente ordenados.\n"
+            "  Divide el conjunto por la mitad repetidamente.\n\n"
+            "• Interpolación: Similar a la binaria, pero calcula la posición estimada\n"
+            "  según la distribución de los datos. Requiere datos numéricos.\n"
+        )
+
+        ttk.Label(win, text=texto, justify='left', wraplength=620).pack(padx=10, pady=10)
+        ttk.Button(win, text="Cerrar", command=win.destroy).pack(pady=8)
+
+    def action_campos_clave(self):
+            """
+            Muestra cuáles son los campos clave y complementarios (requerido por PDF).
+            """
+            win = tk.Toplevel(self.root)
+            win.title("Campos Clave")
+            win.geometry("460x350")
+
+            texto = (
+                "Campos Clave del Proyecto:\n\n"
+                "• ID_PLANTA → Identificador único\n"
+                "• Fecha → Usado para ordenamientos temporales\n"
+                "• Tipo de Fuente → Categórico clave\n\n"
+                "Campos complementarios:\n"
+                "• Estado, Municipio, Empresa, Capacidad, Latitud, Longitud\n"
+                "• Mantenimiento, Comisión, etc.\n\n"
+                "Estos campos determinan clasificación, análisis y búsqueda."
+            )
+
+            ttk.Label(win, text=texto, justify='left', wraplength=420).pack(padx=10, pady=10)
+            ttk.Button(win, text="Cerrar", command=win.destroy).pack(pady=8)
+            ttk.Button(ctrl, text='Campos Clave', command=self.action_campos_clave).pack(side='left', padx=4)
+
+
     def action_ordenar_todo(self):
         """
         Ordena todas las columnas del DataFrame usando Quick Sort por defecto y registra tiempos.
@@ -833,7 +933,7 @@ class SortingApp:
             tiempos_prom = [x[2] for x in metodos_con_datos]
             ax.barh(metodos, tiempos_prom)
             ax.set_xlabel('Tiempo promedio (ns)')
-            ax.set_title('Comparativa de rendimiento por método (el menos eficaz es el mas largo y el más eficiente es el mas largo)')
+            ax.set_title('Comparativa de rendimiento (Menor tiempo = más eficiente)')
             ax.grid(True, axis='x')
             canvas = FigureCanvasTkAgg(fig, master=win)
             canvas.draw()
@@ -891,6 +991,32 @@ class SortingApp:
         val_entry = ttk.Entry(win)
         val_entry.pack(pady=3)
 
+        def busqueda_interpolacion(self, datos, valor):
+            """
+            Implementación de búsqueda por interpolación.
+            Requiere que los datos sean numéricos y estén ordenados.
+            """
+            try:
+                datos_float = [float(x) for x in datos]
+            except:
+                return None  # No se puede operar
+
+            low, high = 0, len(datos_float) - 1
+
+            while low <= high and datos_float[low] <= valor <= datos_float[high]:
+                pos = low + int(
+                    ((valor - datos_float[low]) * (high - low)) /
+                    (datos_float[high] - datos_float[low] + 1e-9)
+                )
+                if datos_float[pos] == valor:
+                    return pos
+                if datos_float[pos] < valor:
+                    low = pos + 1
+                else:
+                    high = pos - 1
+
+            return None
+
         def ejecutar_busqueda():
             columna = col_var.get()
             valor = val_entry.get().strip()
@@ -915,6 +1041,8 @@ class SortingApp:
                 metodos_disponibles = ["Secuencial"]
                 if esta_ordenada:
                     metodos_disponibles.append("Binaria")
+                    if not esta_ordenada and valor.replace('.', '', 1).isdigit():
+                        messagebox.showwarning("Aviso", "Para realizar búsqueda BINARIA debes ordenar primero.")
 
                 # Selección automática: si está ordenada → Binaria, si no → Secuencial
                 metodo = "Binaria" if esta_ordenada else "Secuencial"
