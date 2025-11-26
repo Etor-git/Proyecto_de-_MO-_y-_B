@@ -2,7 +2,7 @@
 sorting_gui.py
 
 Versión final para presentación — interfaz con tkinter que:
-- Carga datos desde .xlsx, .csv o .txt (hasta 3500 registros).
+- Carga datos desde .xlsx, .csv o .txt (hasta 10000 registros).
 - Menú principal: Mostrar, Ordenar, Buscar, Salir.
 - Mostrar permite ver registros antes y después de ordenar (Treeview).
 - Ordenar abre submenú con métodos principales (QuickSort, MergeSort, Aleatorio) y Avanzado para los otros.
