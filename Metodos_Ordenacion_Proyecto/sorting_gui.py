@@ -29,6 +29,8 @@ import random
 import heapq
 import traceback
 from datetime import datetime
+import numpy as np
+import os
 import pandas as pd
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
@@ -452,6 +454,40 @@ class SortingApp:
         self._mo_alfa_guardado = False
 
         self._build_ui()
+        self.cargar_excel_inicial()
+
+    def action_explicaciones(self):
+        """
+        Muestra en una sola ventana las explicaciones de métodos de
+        ordenamiento y búsqueda.
+        """
+        win = tk.Toplevel(self.root)
+        win.title("Explicaciones de Ordenamiento y Búsqueda")
+        win.geometry("680x620")
+
+        texto = (
+            "EXPLICACIÓN DE MÉTODOS DE ORDENAMIENTO\n\n"
+            "• QuickSort: Método rápido basado en pivote y división.\n"
+            "• MergeSort: Divide listas y las mezcla de manera ordenada.\n"
+            "• HeapSort: Construye un montículo y extrae el mínimo/máximo.\n"
+            "• RadixSort: Ordena por dígitos desde menor a mayor.\n"
+            "• CountingSort: Cuenta ocurrencias, muy rápido en rangos pequeños.\n"
+            "• BucketSort: Distribuye elementos en cubetas y luego ordena.\n"
+            "• Burbuja / Selección / Inserción: Métodos simples O(n²).\n\n"
+            "--------------------------------------------------------------\n\n"
+            "EXPLICACIÓN DE MÉTODOS DE BÚSQUEDA\n\n"
+            "• Secuencial:\n"
+            "  Recorre los elementos uno por uno hasta encontrar el valor.\n\n"
+            "• Binaria:\n"
+            "  Solo funciona cuando los datos están ordenados.\n"
+            "  Divide el conjunto por la mitad repetidamente.\n\n"
+            "• Interpolación:\n"
+            "  Calcula la posición estimada donde debería estar el valor.\n"
+            "  Funciona mejor si los datos están uniformemente distribuidos.\n"
+        )
+
+        ttk.Label(win, text=texto, justify='left', wraplength=650).pack(padx=12, pady=10)
+        ttk.Button(win, text="Cerrar", command=win.destroy).pack(pady=10)
 
     def _build_ui(self):
         # Cabecera con información del equipo
@@ -492,11 +528,25 @@ class SortingApp:
         ttk.Button(ctrl, text='MO Alfa', command=self.action_mo_alfa).pack(side='left', padx=4)
         ttk.Button(ctrl, text='Ordenar Todo', command=self.action_ordenar_todo).pack(side='left', padx=4)
         ttk.Button(ctrl, text='Acerca de', command=self.action_acerca_de).pack(side='left', padx=4)
-        ttk.Button(ctrl, text='Explicación Ordenamiento', command=self.action_explicacion_ordenamiento).pack(side='left', padx=4)
-        ttk.Button(ctrl, text='Explicación Búsqueda', command=self.action_explicacion_busqueda).pack(side='left',padx=4)
+        ttk.Button(ctrl, text='Explicaciones', command=self.action_explicaciones).pack(side='left', padx=4)
         ttk.Button(ctrl, text='Campos Clave', command=self.action_campos_clave).pack(side='left', padx=4)
         ttk.Button(ctrl, text='Salir', command=self.root.quit).pack(side='right', padx=4)
     # ----------------- Funciones adicionales: Insertar, Reportes y MO Alfa -----------------
+    def cargar_excel_inicial(self):
+        """
+        Carga automáticamente el archivo MOCK_DATA.xlsx al iniciar el programa.
+        """
+        ruta = r"/Users/hectorjesus/PycharmProjects/Metodos_Ordenacion_Proyecto/MOCK_DATA.xlsx"
+
+        try:
+            df = pd.read_excel(ruta)
+            self.df_original = df.copy()
+            self._refresh_tree(self.df_original)
+            registrar_log(f"Archivo cargado automáticamente: {ruta}")
+            messagebox.showinfo("Carga Automática", "Datos cargados correctamente al iniciar.")
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo cargar el archivo inicial:\n{e}")
+            registrar_log("Error al cargar archivo inicial: " + str(e))
 
 
     def action_insertar(self):
@@ -541,290 +591,221 @@ class SortingApp:
         ttk.Button(win, text='Volver al menú', command=win.destroy).pack(pady=2)
 
     def action_reporte(self):
-        """Genera un reporte en formato .xlsx o .txt con estadísticas de métodos, búsquedas o MO Alfa."""
-        if self.df_original is None or self.df_original.empty:
-            messagebox.showwarning("Advertencia", "No hay datos cargados para generar reporte.")
+        """
+        Genera reportes de ORDENAMIENTO y BÚSQUEDA.
+        (MO Alfa ya no se usa)
+        """
+        # Ventana para seleccionar tipo de reporte
+        win_tipo = tk.Toplevel(self.root)
+        win_tipo.title("Seleccionar tipo de reporte")
+        win_tipo.geometry("360x200")
+
+        tk.Label(win_tipo, text="Selecciona el tipo de reporte:", font=("Arial", 12)).pack(pady=10)
+
+        tipo_var = tk.StringVar()
+        combo = ttk.Combobox(win_tipo, textvariable=tipo_var,
+                             values=["Ordenamiento", "Búsqueda"],
+                             state="readonly")
+        combo.pack(pady=10)
+        combo.current(0)
+
+        def continuar():
+            tipo = tipo_var.get()
+            win_tipo.destroy()
+
+            if tipo == "Ordenamiento":
+                self._menu_reporte_ordenamiento()
+            elif tipo == "Búsqueda":
+                self._generar_reporte_busqueda()
+
+        ttk.Button(win_tipo, text="Continuar", command=continuar).pack(pady=8)
+        ttk.Button(win_tipo, text="Cancelar", command=win_tipo.destroy).pack()
+
+    def _menu_reporte_ordenamiento(self):
+        """
+        Submenú para elegir campo clave y generar reporte de ordenamiento.
+        Requiere que exista un ordenamiento previo.
+        """
+
+        if not hasattr(self, 'ultimo_ordenamiento') or self.ultimo_ordenamiento is None:
+            messagebox.showerror("Error",
+                                 "No se ha realizado ningún ordenamiento.\nOrdena un campo antes de generar el reporte.")
             return
 
         win = tk.Toplevel(self.root)
-        win.title("Generar reporte")
-        win.geometry("330x320")
-        win.configure(bg="#222")
+        win.title("Reporte de Ordenamiento")
+        win.geometry("350x180")
 
-        # Selección de tipo de reporte
-        ttk.Label(win, text="Selecciona tipo de reporte:", background="#222", foreground="white").pack(pady=(8, 3))
-        tipo_reporte_var = tk.StringVar(value='Ordenamiento')
-        ttk.Radiobutton(win, text='Ordenamiento', variable=tipo_reporte_var, value='Ordenamiento').pack(pady=2)
-        ttk.Radiobutton(win, text='Búsqueda', variable=tipo_reporte_var, value='Búsqueda').pack(pady=2)
-        ttk.Radiobutton(win, text='MO Alfa', variable=tipo_reporte_var, value='MO Alfa').pack(pady=2)
+        tk.Label(win, text="Selecciona el campo clave:", font=('Arial', 11)).pack(pady=10)
 
-        ttk.Label(win, text="Selecciona formato:", background="#222", foreground="white").pack(pady=10)
-        formato_var = tk.StringVar(value='xlsx')
-        ttk.Radiobutton(win, text='Excel (.xlsx)', variable=formato_var, value='xlsx').pack(pady=3)
-        ttk.Radiobutton(win, text='Texto (.txt)', variable=formato_var, value='txt').pack(pady=3)
-        ttk.Radiobutton(win, text='CSV (.csv)', variable=formato_var, value='csv').pack(pady=3)
+        columnas = list(self.df_original.columns)
+        campo_var = tk.StringVar()
+        combo = ttk.Combobox(win, textvariable=campo_var, values=columnas, state="readonly")
+        combo.pack(pady=10)
 
         def generar():
-            formato = formato_var.get()
-            tipo_reporte = tipo_reporte_var.get()
-            if tipo_reporte == 'Ordenamiento':
-                # Reporte de métodos de ordenamiento (como antes)
-                if formato == 'xlsx':
-                    if formato == 'txt':
-                        path = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=[('Texto', '*.txt')])
-                        if not path:
-                            return
-                        with open(path, 'w', encoding='utf-8') as f:
-                            f.write(contenido)
-                        win.destroy()
+            if campo_var.get() == "":
+                messagebox.showerror("Error", "Debes seleccionar un campo clave.")
+                return
 
-                    elif formato == 'xlsx':
-                        path = filedialog.asksaveasfilename(defaultextension='.xlsx', filetypes=[('Excel', '*.xlsx')])
-                        if not path:
-                            return
-                        self.df_original.to_excel(path, index=False)
-                        win.destroy()
+            try:
+                fecha = datetime.now().strftime('%Y%m%d_%H%M%S')
+                nombre = f"REPORTE_ORDENAMIENTO_{fecha}.xlsx"
 
-                    elif formato == 'csv':  # ← AQUI LO AGREGAS
-                        path = filedialog.asksaveasfilename(defaultextension='.csv', filetypes=[('CSV', '*.csv')])
-                        if not path:
-                            return
-                        self.df_original.to_csv(path, index=False)
-                        registrar_log(f'Reporte CSV generado en {path}')
-                        messagebox.showinfo('Reporte', 'Reporte CSV generado correctamente.')
-                        win.destroy()
+                df_resumen = pd.DataFrame([{
+                    'Método': self.ultimo_ordenamiento['metodo'],
+                    'Columna': campo_var.get(),
+                    'Tiempo_ns': self.ultimo_ordenamiento['tiempo'],
+                    'Registros': len(self.df_original)
+                }])
 
-                    else:
-                        messagebox.showwarning('Advertencia', 'Selecciona un formato para guardar.')
+                with pd.ExcelWriter(nombre, engine='openpyxl') as writer:
+                    df_resumen.to_excel(writer, index=False, sheet_name='Resumen')
+                    self.df_original.to_excel(writer, index=False, sheet_name='Datos_Ordenados')
 
-                    path = filedialog.asksaveasfilename(defaultextension='.xlsx', filetypes=[('Excel', '*.xlsx')])
-                    if not path:
-                        return
-                    try:
-                        resumen_df = pd.DataFrame({
-                            'Método': [], 'Ejecuciones': [], 'Promedio_ns': []
-                        })
-                        if hasattr(self, 'method_stats') and self.method_stats:
-                            resumen_df = pd.DataFrame([
-                                {'Método': m, 'Ejecuciones': len(v), 'Promedio_ns': (sum(v)//len(v) if len(v)>0 else 0)}
-                                for m, v in self.method_stats.items()
-                            ])
-                        mo_rows = []
-                        if not resumen_df.empty:
-                            mejor = resumen_df.loc[resumen_df['Promedio_ns']>0].sort_values('Promedio_ns').head(1)
-                            if not mejor.empty:
-                                mo_rows = [{'MO_Alfa': mejor.iloc[0]['Método'], 'Promedio_ns': int(mejor.iloc[0]['Promedio_ns'])}]
-                        with pd.ExcelWriter(path, engine='openpyxl') as writer:
-                            self.df_original.to_excel(writer, index=False, sheet_name='Datos')
-                            resumen_df.to_excel(writer, index=False, sheet_name='Resumen_Metodos')
-                            pd.DataFrame(mo_rows).to_excel(writer, index=False, sheet_name='MO_Alfa')
-                        registrar_log(f'Reporte (xlsx) generado en {path}')
-                        messagebox.showinfo('Reporte', f'Reporte generado en: {path}')
-                        win.destroy()
-                    except Exception as e:
-                        messagebox.showerror('Error', f'No se pudo generar el reporte: {e}')
-                        registrar_log('Error al generar reporte xlsx: ' + str(e))
-                else:
-                    path = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=[('Texto', '*.txt')])
-                    if not path:
-                        return
-                    try:
-                        # Guardar los datos originales y resumen de métodos en texto
-                        with open(path, 'w', encoding='utf-8') as f:
-                            f.write("Datos:\n")
-                            self.df_original.to_csv(f, index=False, sep='\t')
-                            f.write("\nResumen de métodos:\n")
-                            if hasattr(self, 'method_stats') and self.method_stats:
-                                for m, v in self.method_stats.items():
-                                    promedio = (sum(v)//len(v) if len(v)>0 else 0)
-                                    f.write(f"{m}: {len(v)} ejecuciones, promedio {promedio:,} ns\n")
-                        registrar_log(f'Reporte generado en {path}')
-                        messagebox.showinfo('Reporte', f'Reporte generado en: {path}')
-                        win.destroy()
-                    except Exception as e:
-                        messagebox.showerror('Error', f'No se pudo generar el reporte: {e}')
-                        registrar_log('Error al generar reporte txt: ' + str(e))
-            elif tipo_reporte == 'Búsqueda':
-                # Reporte solo de búsquedas del log
-                import os
-                if not os.path.exists(LOG_FILE):
-                    messagebox.showwarning('Advertencia', 'No se encontró el archivo de log.')
+                registrar_log(f"Reporte de ordenamiento generado: {nombre}")
+                messagebox.showinfo("Reporte", f"Reporte generado correctamente:\n{nombre}")
+                win.destroy()
+
+            except Exception as e:
+                registrar_log(f"ERROR reporte ordenamiento: {e}")
+                messagebox.showerror("Error", f"No se pudo generar el reporte:\n{e}")
+
+        ttk.Button(win, text="Generar", command=generar).pack(pady=8)
+        ttk.Button(win, text="Cancelar", command=win.destroy).pack()
+
+    def _generar_reporte_busqueda(self):
+        """
+        Genera reporte de búsquedas (solo esta sesión)
+        con un SUBMENÚ que incluye CAMPOS CLAVE.
+        """
+
+        if not os.path.exists(LOG_FILE):
+            messagebox.showwarning('Advertencia', 'No se encontró el archivo de log.')
+            return
+
+        # SUBMENÚ
+        win = tk.Toplevel(self.root)
+        win.title("Reporte de Búsqueda")
+        win.geometry("380x260")
+
+        ttk.Label(win, text="Generar reporte de búsquedas\n(sesión actual):",
+                  font=("Arial", 11)).pack(pady=10)
+
+        # Selección de campo clave
+        ttk.Label(win, text="Selecciona el campo clave:", font=("Arial", 10)).pack(pady=4)
+
+        columnas = list(self.df_original.columns)
+        campo_var = tk.StringVar()
+        combo_campos = ttk.Combobox(
+            win, textvariable=campo_var,
+            values=columnas, state="readonly"
+        )
+        combo_campos.pack(pady=6)
+
+        ttk.Label(win, text="¿Qué deseas hacer?", font=("Arial", 10)).pack(pady=(12, 4))
+
+        opcion = tk.StringVar()
+        combo_accion = ttk.Combobox(
+            win, textvariable=opcion,
+            values=["Generar reporte", "Cancelar"],
+            state="readonly"
+        )
+        combo_accion.pack(pady=6)
+        combo_accion.current(0)
+
+        def continuar():
+            accion = opcion.get()
+            campo = campo_var.get()
+
+            if accion == "Cancelar":
+                win.destroy()
+                return
+
+            if campo == "":
+                messagebox.showerror("Error", "Debes seleccionar un campo clave para el reporte.")
+                return
+
+            win.destroy()
+
+            try:
+                # Leer log de la sesión
+                with open(LOG_FILE, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+
+                # Filtrar únicamente registros de búsqueda
+                busquedas = [
+                    line for line in lines
+                    if ('Búsqueda' in line or 'búsqueda' in line)
+                ]
+
+                if not busquedas:
+                    messagebox.showwarning(
+                        'Advertencia',
+                        'No se encontraron registros de búsqueda en esta sesión.'
+                    )
                     return
-                try:
-                    with open(LOG_FILE, 'r', encoding='utf-8') as f:
-                        lines = f.readlines()
-                    # Filtrar solo líneas que sean de búsquedas
-                    busquedas = [line for line in lines if 'Búsqueda' in line or 'búsqueda' in line]
-                    if not busquedas:
-                        messagebox.showwarning('Advertencia', 'No se encontraron registros de búsqueda en el log.')
-                        return
-                    if formato == 'xlsx':
-                        path = filedialog.asksaveasfilename(defaultextension='.xlsx', filetypes=[('Excel', '*.xlsx')])
-                        if not path:
-                            return
-                        # Guardar las búsquedas en un DataFrame
-                        df_busq = pd.DataFrame({'Búsquedas': [b.strip() for b in busquedas]})
-                        with pd.ExcelWriter(path, engine='openpyxl') as writer:
-                            df_busq.to_excel(writer, index=False, sheet_name='Busquedas')
-                        registrar_log(f'Reporte de búsquedas (xlsx) generado en {path}')
-                        messagebox.showinfo('Reporte', f'Reporte de búsquedas generado en: {path}')
-                        win.destroy()
-                    else:
-                        path = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=[('Texto', '*.txt')])
-                        if not path:
-                            return
-                        with open(path, 'w', encoding='utf-8') as fout:
-                            fout.write("Registros de Búsqueda:\n")
-                            for b in busquedas:
-                                fout.write(b)
-                        registrar_log(f'Reporte de búsquedas (txt) generado en {path}')
-                        messagebox.showinfo('Reporte', f'Reporte de búsquedas generado en: {path}')
-                        win.destroy()
-                except Exception as e:
-                    messagebox.showerror('Error', f'No se pudo generar el reporte de búsquedas: {e}')
-                    registrar_log('Error al generar reporte de búsquedas: ' + str(e))
-            elif tipo_reporte == 'MO Alfa':
-                # Solo el análisis del mejor método (como bloque mo_rows)
-                if formato == 'xlsx':
-                    path = filedialog.asksaveasfilename(defaultextension='.xlsx', filetypes=[('Excel', '*.xlsx')])
-                    if not path:
-                        return
-                    try:
-                        resumen_df = pd.DataFrame([
-                            {'Método': m, 'Ejecuciones': len(v), 'Promedio_ns': (sum(v)//len(v) if len(v)>0 else 0)}
-                            for m, v in self.method_stats.items()
-                        ]) if hasattr(self, 'method_stats') and self.method_stats else pd.DataFrame()
-                        mo_rows = []
-                        if not resumen_df.empty:
-                            mejor = resumen_df.loc[resumen_df['Promedio_ns']>0].sort_values('Promedio_ns').head(1)
-                            if not mejor.empty:
-                                mo_rows = [{'MO_Alfa': mejor.iloc[0]['Método'], 'Promedio_ns': int(mejor.iloc[0]['Promedio_ns'])}]
-                        with pd.ExcelWriter(path, engine='openpyxl') as writer:
-                            pd.DataFrame(mo_rows).to_excel(writer, index=False, sheet_name='MO_Alfa')
-                        registrar_log(f'Reporte MO Alfa (xlsx) generado en {path}')
-                        messagebox.showinfo('Reporte', f'Reporte MO Alfa generado en: {path}')
-                        win.destroy()
-                    except Exception as e:
-                        messagebox.showerror('Error', f'No se pudo generar el reporte MO Alfa: {e}')
-                        registrar_log('Error al generar reporte MO Alfa xlsx: ' + str(e))
-                else:
-                    path = filedialog.asksaveasfilename(defaultextension='.txt', filetypes=[('Texto', '*.txt')])
-                    if not path:
-                        return
-                    try:
-                        resumen_df = pd.DataFrame([
-                            {'Método': m, 'Ejecuciones': len(v), 'Promedio_ns': (sum(v)//len(v) if len(v)>0 else 0)}
-                            for m, v in self.method_stats.items()
-                        ]) if hasattr(self, 'method_stats') and self.method_stats else pd.DataFrame()
-                        mo_txt = ""
-                        if not resumen_df.empty:
-                            mejor = resumen_df.loc[resumen_df['Promedio_ns']>0].sort_values('Promedio_ns').head(1)
-                            if not mejor.empty:
-                                mo_txt = f"MO_Alfa: {mejor.iloc[0]['Método']}, Promedio_ns: {int(mejor.iloc[0]['Promedio_ns'])}\n"
-                        with open(path, 'w', encoding='utf-8') as f:
-                            f.write("Reporte MO Alfa\n")
-                            f.write(mo_txt)
-                        registrar_log(f'Reporte MO Alfa (txt) generado en {path}')
-                        messagebox.showinfo('Reporte', f'Reporte MO Alfa generado en: {path}')
-                        win.destroy()
-                    except Exception as e:
-                        messagebox.showerror('Error', f'No se pudo generar el reporte MO Alfa: {e}')
-                        registrar_log('Error al generar reporte MO Alfa txt: ' + str(e))
 
-        ttk.Button(win, text='Generar', command=generar).pack(pady=10)
-        ttk.Button(win, text='Cancelar', command=win.destroy).pack(pady=2)
+                # Crear archivo
+                fecha = datetime.now().strftime('%Y%m%d_%H%M%S')
+                nombre = f"REPORTE_BUSQUEDAS_{fecha}.txt"
+
+                with open(nombre, 'w', encoding='utf-8') as fout:
+                    fout.write("REPORTE DE BÚSQUEDAS – SESIÓN ACTUAL\n\n")
+                    fout.write(f"Campo clave seleccionado: {campo}\n\n")
+                    fout.write("Registros:\n\n")
+                    for b in busquedas:
+                        fout.write(b)
+
+                registrar_log(f"Reporte de búsquedas generado: {nombre}")
+                messagebox.showinfo(
+                    'Reporte',
+                    f'Reporte generado correctamente:\n{nombre}'
+                )
+
+            except Exception as e:
+                registrar_log("ERROR reporte búsqueda: " + str(e))
+                messagebox.showerror(
+                    "Error",
+                    f"No se pudo generar el reporte de búsqueda:\n{e}"
+                )
+
+        ttk.Button(win, text="Continuar", command=continuar).pack(pady=10)
+        ttk.Button(win, text="Cerrar", command=win.destroy).pack(pady=2)
 
     def action_acerca_de(self):
         """
-        Muestra información del proyecto (SADCE, equipo, integrantes, objetivo y lista de campos clave).
-        """
-        try:
-            win = tk.Toplevel(self.root)
-            win.title('Acerca del Proyecto')
-            win.geometry('560x360')
-            txt = (
-                f"Proyecto: {TEAM_INFO['tema']}\n"
-                f"Equipo: {TEAM_INFO['equipo']}\n"
-                f"Integrantes: {', '.join(TEAM_INFO['integrantes'])}\n\n"
-                "Descripción:\n"
-                "Aplicación para comparar y analizar 11 métodos de ordenamiento sobre datos tabulares.\n"
-                "Permite carga de archivos (.xlsx, .csv, .txt), inserción, búsqueda, reportes y generación de MO Alfa.\n\n"
-                "Campos clave: ID_PLANTA, Tipo de Fuente, Fecha (u otras columnas temporales).\n"
-            )
-            lbl = ttk.Label(win, text=txt, justify='left', wraplength=520)
-            lbl.pack(padx=10, pady=10)
-            ttk.Button(win, text='Cerrar', command=win.destroy).pack(pady=8)
-        except Exception as e:
-            registrar_log('Error en action_acerca_de: ' + str(e))
-
-    def action_explicacion_ordenamiento(self):
-        """
-        Muestra una ventana con la explicación teórica de los métodos de ordenamiento.
-        Cumple con el punto del PDF donde la profesora escogerá un método a explicar.
+        Ventana pequeña con información básica del proyecto.
         """
         win = tk.Toplevel(self.root)
-        win.title("Explicación de Ordenamientos")
-        win.geometry("650x520")
+        win.title('Acerca del Proyecto')
+        win.geometry('360x220')
 
         texto = (
-            "Explicación de Métodos de Ordenamiento\n\n"
-            "• QuickSort: Método recursivo basado en 'divide y vencerás', elige un pivote y separa\n"
-            "  valores menores de mayores. Es muy rápido O(n log n) promedio.\n\n"
-            "• MergeSort: Divide la lista en mitades, las ordena y las mezcla. Estable y O(n log n).\n\n"
-            "• HeapSort: Construye un montículo y extrae el mayor/mínimo repetidamente.\n\n"
-            "• RadixSort: Ordena por dígitos desde el menos significativo.\n\n"
-            "• CountingSort: Cuenta ocurrencias y reconstruye. Solo funciona bien con números.\n\n"
-            "• BucketSort: Distribuye elementos en cubetas y luego las ordena.\n\n"
-            "• Burbuja / Selección / Inserción: Métodos simples, O(n²), usados para grupos pequeños."
+            f"Proyecto: {TEAM_INFO['tema']}\n"
+            f"Equipo: {TEAM_INFO['equipo']}\n"
+            f"Integrantes:\n- Héctor Jesús Valadez Pardo\n- Alberto Roman Campos\n\n"
+            "Sistema para comparar 11 métodos de\n"
+            "ordenamiento y búsquedas.\n"
         )
 
-        ttk.Label(win, text=texto, justify='left', wraplength=620).pack(padx=10, pady=10)
-        ttk.Button(win, text="Cerrar", command=win.destroy).pack(pady=8)
-        ttk.Button(ctrl, text='Explicación Búsqueda', command=self.action_explicacion_busqueda).pack(side='left',padx=4)
-
-    def action_explicacion_busqueda(self):
-        """
-        Explica los métodos de búsqueda según lo pide la lista del PDF.
-        """
-        win = tk.Toplevel(self.root)
-        win.title("Explicación de Búsquedas")
-        win.geometry("650x450")
-
-        texto = (
-            "Explicación de Métodos de Búsqueda\n\n"
-            "• Secuencial: Recorre uno por uno cada registro hasta encontrarlo.\n"
-            "  Funciona sobre datos ordenados y desordenados.\n\n"
-            "• Binaria: Solo funciona si los datos están previamente ordenados.\n"
-            "  Divide el conjunto por la mitad repetidamente.\n\n"
-            "• Interpolación: Similar a la binaria, pero calcula la posición estimada\n"
-            "  según la distribución de los datos. Requiere datos numéricos.\n"
-        )
-
-        ttk.Label(win, text=texto, justify='left', wraplength=620).pack(padx=10, pady=10)
-        ttk.Button(win, text="Cerrar", command=win.destroy).pack(pady=8)
+        ttk.Label(win, text=texto, justify='left').pack(padx=10, pady=10)
+        ttk.Button(win, text='Cerrar', command=win.destroy).pack(pady=8)
 
     def action_campos_clave(self):
-            """
-            Muestra cuáles son los campos clave y complementarios (requerido por PDF).
-            """
-            win = tk.Toplevel(self.root)
-            win.title("Campos Clave")
-            win.geometry("460x350")
+        """
+        Muestra cuáles son los campos clave y complementarios (requerido por PDF).
+        """
+        win = tk.Toplevel(self.root)
+        win.title("Campos Clave")
+        win.geometry("360x260")
 
-            texto = (
-                "Campos Clave del Proyecto:\n\n"
-                "• ID_PLANTA → Identificador único\n"
-                "• Fecha → Usado para ordenamientos temporales\n"
-                "• Tipo de Fuente → Categórico clave\n\n"
-                "Campos complementarios:\n"
-                "• Estado, Municipio, Empresa, Capacidad, Latitud, Longitud\n"
-                "• Mantenimiento, Comisión, etc.\n\n"
-                "Estos campos determinan clasificación, análisis y búsqueda."
-            )
-
-            ttk.Label(win, text=texto, justify='left', wraplength=420).pack(padx=10, pady=10)
-            ttk.Button(win, text="Cerrar", command=win.destroy).pack(pady=8)
-            ttk.Button(ctrl, text='Campos Clave', command=self.action_campos_clave).pack(side='left', padx=4)
+        texto = (
+            "Campos clave para ordenamiento y búsqueda:\n\n"
+            "ID_PLANTA\nFecha\nTipo de Fuente\nCapacidad\nUbicación\nProveedor Turbinas\nMantenimiento\n"
+        )
+        ttk.Label(win, text=texto, justify='left', wraplength=330).pack(padx=10, pady=10)
+        ttk.Button(win, text='Volver al menú', command=win.destroy).pack(pady=6)
 
 
     def action_ordenar_todo(self):
@@ -867,7 +848,7 @@ class SortingApp:
     def action_mo_alfa(self):
         """
         Analiza el rendimiento de los métodos ejecutados, muestra cuáles se repiten más,
-        genera una tabla con los 11 métodos (aunque no se hayan usado) y guarda los resultados en el log.
+        genera el reporte MO Alfa automáticamente y guarda los resultados en el log.
         """
         # Inicializar estadísticas si no existen
         if not hasattr(self, 'method_stats'):
@@ -914,30 +895,48 @@ class SortingApp:
 
         ttk.Label(win, text=resumen_texto, justify='left', wraplength=850).pack(pady=10)
 
-        # Crear tabla con todos los métodos
-        frame_tabla = ttk.Frame(win)
-        frame_tabla.pack(fill='both', expand=True, padx=10, pady=10)
-        columnas = ('Método', 'Ejecuciones', 'Promedio (ns)')
-        tabla = ttk.Treeview(frame_tabla, columns=columnas, show='headings', height=12)
-        for col in columnas:
-            tabla.heading(col, text=col)
-            tabla.column(col, anchor='center', width=250)
-        for fila in resumen_datos:
-            tabla.insert('', 'end', values=fila)
-        tabla.pack(fill='both', expand=True)
+        # Generar reporte MO Alfa automáticamente (Excel acumulativo)
+        try:
+            archivo_acumulado = "MO_ALFA_HISTORICO.xlsx"
+            nombre_hoja = "MO_ALFA_" + datetime.now().strftime('%Y%m%d_%H%M%S')
 
-        # Mostrar gráfico de rendimiento comparativo (solo métodos con datos)
-        if metodos_con_datos:
-            fig, ax = plt.subplots(figsize=(8, 4))
-            metodos = [x[0] for x in metodos_con_datos]
-            tiempos_prom = [x[2] for x in metodos_con_datos]
-            ax.barh(metodos, tiempos_prom)
-            ax.set_xlabel('Tiempo promedio (ns)')
-            ax.set_title('Comparativa de rendimiento (Menor tiempo = más eficiente)')
-            ax.grid(True, axis='x')
-            canvas = FigureCanvasTkAgg(fig, master=win)
-            canvas.draw()
-            canvas.get_tk_widget().pack(fill='both', expand=True, pady=10)
+            resumen_df = pd.DataFrame([
+                {'Método': m, 'Ejecuciones': e, 'Promedio_ns': p}
+                for m, e, p in resumen_datos
+            ])
+
+            mejor = None
+            if any(e > 0 for _, e, _ in resumen_datos):
+                mejor = min(
+                    [x for x in resumen_datos if x[1] > 0],
+                    key=lambda x: x[2]
+                )
+
+            if os.path.exists(archivo_acumulado):
+                with pd.ExcelWriter(archivo_acumulado, engine='openpyxl', mode='a', if_sheet_exists='new') as writer:
+                    resumen_df.to_excel(writer, index=False, sheet_name=nombre_hoja)
+
+                    if mejor:
+                        pd.DataFrame([{
+                            'MO_Alfa': mejor[0],
+                            'Promedio_ns': mejor[2]
+                        }]).to_excel(writer, index=False, sheet_name=nombre_hoja + "_MEJOR")
+            else:
+                with pd.ExcelWriter(archivo_acumulado, engine='openpyxl') as writer:
+                    resumen_df.to_excel(writer, index=False, sheet_name=nombre_hoja)
+
+                    if mejor:
+                        pd.DataFrame([{
+                            'MO_Alfa': mejor[0],
+                            'Promedio_ns': mejor[2]
+                        }]).to_excel(writer, index=False, sheet_name=nombre_hoja + "_MEJOR")
+
+            registrar_log(f"Reporte MO Alfa acumulado generado: {archivo_acumulado}")
+            messagebox.showinfo("MO Alfa", f"Reporte acumulado generado en:\n{archivo_acumulado}")
+
+        except Exception as e:
+            registrar_log(f"Error guardando reporte MO Alfa acumulado: {e}")
+            messagebox.showerror("Error", f"No se pudo guardar el reporte MO Alfa:\n{e}")
 
         # Guardar resultados MO Alfa en archivo de registro
         registrar_log("\n--- [MO Alfa] Análisis completo ---\n" + resumen_texto)
@@ -1180,6 +1179,8 @@ class SortingApp:
         adv_var = tk.StringVar()
         adv_combo = ttk.Combobox(win, values=list(ALGORITHMS.keys()), state='readonly', textvariable=adv_var)
 
+
+
         def on_method_change(event=None):
             if method_var.get() == 'Avanzado':
                 adv_combo.pack(fill='x', padx=6, pady=4)
@@ -1306,6 +1307,12 @@ class SortingApp:
                 self.method_stats = {}
             self.method_stats.setdefault(alg_key.strip(), []).append(elapsed_ns)
 
+            # Registrar último ordenamiento para reportes
+            self.ultimo_ordenamiento = {
+                'metodo': alg_key.strip(),
+                'columna': col,
+                'tiempo': elapsed_ns
+            }
             # mostrar leyenda (sin mostrar datos)
             self.legend_var.set(f'Ordenado por el método {alg_key} y se realizó en {elapsed_ns} nanosegundos')
             messagebox.showinfo('Ordenamiento completado', self.legend_var.get())
