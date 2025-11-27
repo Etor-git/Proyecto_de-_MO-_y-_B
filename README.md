@@ -10,7 +10,7 @@ Descripción del Proyecto
 
 Este proyecto implementa una aplicación gráfica en Python que permite analizar y comparar diferentes métodos de ordenación aplicados a conjuntos de datos reales.
 A través de una interfaz interactiva desarrollada con tkinter, el usuario puede:
-	•	Cargar datos desde archivos .xlsx, .csv o .txt (hasta 3500 registros).
+	•	Cargar datos desde archivos .xlsx, .csv o .txt (hasta 10000 registros).
 	•	Visualizar los registros antes y después del ordenamiento.
 	•	Aplicar distintos métodos de ordenación (QuickSort, MergeSort, Burbuja, etc.).
 	•	Medir el rendimiento y tiempo de ejecución (en nanosegundos).
