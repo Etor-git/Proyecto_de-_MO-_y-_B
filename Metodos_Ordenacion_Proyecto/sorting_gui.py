@@ -51,11 +51,10 @@ TEAM_INFO = {
 
 def registrar_log(mensaje: str):
     """
-    Registra mensajes en el archivo de registro con fecha y hora.
+    Registra mensajes SIN fecha ni hora.
     """
-    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     with open(LOG_FILE, 'a', encoding='utf-8') as f:
-        f.write(f'[{now}] {mensaje}\n')
+        f.write(mensaje + "\n")
 
 
 # --------------------------- Instrumentación -------------------------------
@@ -442,6 +441,13 @@ def cargar_datos(path=None):
 
 class SortingApp:
     def __init__(self, root):
+        # Reiniciar archivo de LOG en cada inicio de programa
+        try:
+            with open(LOG_FILE, 'w', encoding='utf-8') as f:
+                f.write("")  # Limpia el log para no arrastrar sesiones anteriores
+        except:
+            pass
+
         self.root = root
         self.root.title('Proyecto Ordenamiento - Equipo 14 \n- Héctor Jesús Valadez Pardo y Alberto Roman Campos')
         self.df_original = None  # DataFrame al cargar
@@ -516,20 +522,14 @@ class SortingApp:
         right.pack(side='left', fill='both', expand=False)
         self.legend_var = tk.StringVar(value='')
         ttk.Label(right, textvariable=self.legend_var, wraplength=250).pack(pady=6)
-
-        ttk.Button(ctrl, text='Cargar datos', command=self.action_cargar).pack(side='left', padx=4)
         ttk.Button(ctrl, text='Mostrar', command=self.action_mostrar).pack(side='left', padx=4)
         ttk.Button(ctrl, text='Ordenar', command=self.action_ordenar).pack(side='left', padx=4)
         ttk.Button(ctrl, text='Buscar', command=self.action_buscar).pack(side='left', padx=4)
-        ttk.Button(ctrl, text='Guardar Excel', command=self.action_guardar).pack(side='left', padx=4)
         # Botones adicionales de funcionalidad extra (Insertar, Reportes, MO Alfa, Ordenar Todo, Acerca de)
         ttk.Button(ctrl, text='Insertar', command=self.action_insertar).pack(side='left', padx=4)
         ttk.Button(ctrl, text='Reportes', command=self.action_reporte).pack(side='left', padx=4)
         ttk.Button(ctrl, text='MO Alfa', command=self.action_mo_alfa).pack(side='left', padx=4)
-        ttk.Button(ctrl, text='Ordenar Todo', command=self.action_ordenar_todo).pack(side='left', padx=4)
         ttk.Button(ctrl, text='Acerca de', command=self.action_acerca_de).pack(side='left', padx=4)
-        ttk.Button(ctrl, text='Explicaciones', command=self.action_explicaciones).pack(side='left', padx=4)
-        ttk.Button(ctrl, text='Campos Clave', command=self.action_campos_clave).pack(side='left', padx=4)
         ttk.Button(ctrl, text='Salir', command=self.root.quit).pack(side='right', padx=4)
     # ----------------- Funciones adicionales: Insertar, Reportes y MO Alfa -----------------
     def cargar_excel_inicial(self):
@@ -649,8 +649,7 @@ class SortingApp:
                 return
 
             try:
-                fecha = datetime.now().strftime('%Y%m%d_%H%M%S')
-                nombre = f"REPORTE_ORDENAMIENTO_{fecha}.xlsx"
+                nombre = "REPORTE_ORDENAMIENTO.xlsx"
 
                 df_resumen = pd.DataFrame([{
                     'Método': self.ultimo_ordenamiento['metodo'],
@@ -747,11 +746,14 @@ class SortingApp:
                     return
 
                 # Crear archivo
-                fecha = datetime.now().strftime('%Y%m%d_%H%M%S')
-                nombre = f"REPORTE_BUSQUEDAS_{fecha}.txt"
+                nombre = "REPORTE_BUSQUEDAS.txt"
 
                 with open(nombre, 'w', encoding='utf-8') as fout:
-                    fout.write("REPORTE DE BÚSQUEDAS – SESIÓN ACTUAL\n\n")
+                    fout.write("===== REPORTE DE BÚSQUEDAS =====\n")
+                    fout.write("Proyecto: Energía\n")
+                    fout.write("Equipo 14 - Energía\n")
+                    fout.write("Integrantes: Héctor Jesús Valadez Pardo, Alberto Roman Campos\n")
+                    fout.write("----------------------------------------------\n\n")
                     fout.write(f"Campo clave seleccionado: {campo}\n\n")
                     fout.write("Registros:\n\n")
                     for b in busquedas:
