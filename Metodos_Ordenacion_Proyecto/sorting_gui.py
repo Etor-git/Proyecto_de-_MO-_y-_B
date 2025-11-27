@@ -849,75 +849,44 @@ class SortingApp:
 
     def action_mo_alfa(self):
         """
-        Analiza el rendimiento de los métodos ejecutados, muestra cuáles se repiten más,
-        genera el reporte MO Alfa automáticamente y guarda los resultados en el log.
+        Genera automáticamente el reporte MO Alfa sin abrir ventanas.
         """
         # Inicializar estadísticas si no existen
         if not hasattr(self, 'method_stats'):
             self.method_stats = {}
 
-        # Asegurar que existan las 11 claves en method_stats (aunque sin datos)
+        # Asegurar que existan todas las claves
         for metodo in ALGORITHMS.keys():
             if metodo.strip() not in self.method_stats:
                 self.method_stats[metodo.strip()] = []
 
-        # Crear ventana principal
-        win = tk.Toplevel(self.root)
-        win.title('MO Alfa - Análisis de Métodos')
-        win.geometry('950x650')
-
-        ttk.Label(win, text='Análisis de Métodos de Ordenamiento (MO Alfa)', font=('Helvetica', 13, 'bold')).pack(pady=10)
-
-        # Calcular promedios y repeticiones
-        resumen_texto = ""
+        # Preparar resumen
         resumen_datos = []
         for metodo, tiempos in self.method_stats.items():
             ejecuciones = len(tiempos)
             promedio = int(sum(tiempos) / ejecuciones) if ejecuciones > 0 else 0
             resumen_datos.append((metodo.strip(), ejecuciones, promedio))
-            if ejecuciones > 0:
-                resumen_texto += f"{metodo.strip()}: {ejecuciones} ejecuciones, promedio {promedio:,} ns\n"
-            else:
-                resumen_texto += f"{metodo.strip()}: Sin ejecuciones registradas\n"
 
-        # Determinar el método más eficiente
+        # Determinar mejor método
         metodos_con_datos = [x for x in resumen_datos if x[1] > 0]
+        mejor = None
         if metodos_con_datos:
             mejor = min(metodos_con_datos, key=lambda x: x[2])
-            resumen_texto += f"\nMétodo más eficiente: {mejor[0]} con {mejor[2]:,} ns (promedio)\n"
-        else:
-            mejor = None
-            resumen_texto += "\nNo hay métodos ejecutados para calcular MO Alfa.\n"
 
-        # Identificar métodos que se repiten más
-        if metodos_con_datos:
-            max_repe = max(metodos_con_datos, key=lambda x: x[1])[1]
-            metodos_repetidos = [m for m, e, _ in resumen_datos if e == max_repe]
-            resumen_texto += f"\nMétodos que se repiten más: {', '.join(metodos_repetidos)} ({max_repe} veces)\n"
+        # Nombre del archivo acumulado
+        archivo_acumulado = "MO_ALFA_HISTORICO.xlsx"
+        nombre_hoja = "MO_ALFA_" + datetime.now().strftime('%Y%m%d_%H%M%S')
 
-        ttk.Label(win, text=resumen_texto, justify='left', wraplength=850).pack(pady=10)
+        # Crear DataFrame
+        resumen_df = pd.DataFrame([
+            {'Método': m, 'Ejecuciones': e, 'Promedio_ns': p}
+            for m, e, p in resumen_datos
+        ])
 
-        # Generar reporte MO Alfa automáticamente (Excel acumulativo)
         try:
-            archivo_acumulado = "MO_ALFA_HISTORICO.xlsx"
-            nombre_hoja = "MO_ALFA_" + datetime.now().strftime('%Y%m%d_%H%M%S')
-
-            resumen_df = pd.DataFrame([
-                {'Método': m, 'Ejecuciones': e, 'Promedio_ns': p}
-                for m, e, p in resumen_datos
-            ])
-
-            mejor = None
-            if any(e > 0 for _, e, _ in resumen_datos):
-                mejor = min(
-                    [x for x in resumen_datos if x[1] > 0],
-                    key=lambda x: x[2]
-                )
-
             if os.path.exists(archivo_acumulado):
                 with pd.ExcelWriter(archivo_acumulado, engine='openpyxl', mode='a', if_sheet_exists='new') as writer:
                     resumen_df.to_excel(writer, index=False, sheet_name=nombre_hoja)
-
                     if mejor:
                         pd.DataFrame([{
                             'MO_Alfa': mejor[0],
@@ -926,26 +895,18 @@ class SortingApp:
             else:
                 with pd.ExcelWriter(archivo_acumulado, engine='openpyxl') as writer:
                     resumen_df.to_excel(writer, index=False, sheet_name=nombre_hoja)
-
                     if mejor:
                         pd.DataFrame([{
                             'MO_Alfa': mejor[0],
                             'Promedio_ns': mejor[2]
                         }]).to_excel(writer, index=False, sheet_name=nombre_hoja + "_MEJOR")
 
-            registrar_log(f"Reporte MO Alfa acumulado generado: {archivo_acumulado}")
-            messagebox.showinfo("MO Alfa", f"Reporte acumulado generado en:\n{archivo_acumulado}")
+            registrar_log(f"Reporte automático MO Alfa generado: {archivo_acumulado}")
+            messagebox.showinfo("MO Alfa", f"Reporte MO Alfa generado automáticamente:\n{archivo_acumulado}")
 
         except Exception as e:
-            registrar_log(f"Error guardando reporte MO Alfa acumulado: {e}")
+            registrar_log(f"Error guardando reporte MO Alfa: {e}")
             messagebox.showerror("Error", f"No se pudo guardar el reporte MO Alfa:\n{e}")
-
-        # Guardar resultados MO Alfa en archivo de registro
-        registrar_log("\n--- [MO Alfa] Análisis completo ---\n" + resumen_texto)
-        for m, e, p in resumen_datos:
-            registrar_log(f"{m}: {e} ejecuciones, promedio {p:,} ns")
-
-        ttk.Button(win, text='Volver al menú', command=win.destroy).pack(pady=8)
 
 
 
